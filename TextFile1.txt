@@ -1,0 +1,295 @@
+Modify for linear position
+	ReadAngle
+	MoveABS
+	MaxNumberSteps
+
+	Find correct id number for motor. Search for id in ports[]
+
+Zaber Reference
+	1 inch = 25.4 mm
+	237.037 steps per millimeter
+	18062 steps = 3 inches
+	Origin = 330974
+	Total Steps (estimate) = 354371
+
+
+Features
+	Set origin option - Saves the current position as the new origin.
+	Settings
+		Interval length in millimeters
+		Number of intervals
+	Redo row - returns to origin and tests same row, saving over previous row data
+
+
+
+
+
+
+
+/*
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.IO.Ports;
+using System.Diagnostics;
+using System.Windows.Forms;
+
+// vbCr = "\r"
+// vbLf = "\n"
+// vbCrLf = "\r\n"
+
+
+namespace Thickness_Test_System
+{
+    public class ZaberCTRL
+    {
+        SerialPort motor;
+        bool portBusy = false;
+        long encoderPos = 0;
+        int LimitMaxSpeed = 0;
+        string mData = "";
+        string wStr = "";
+        const int StepPerMM = 237;
+               
+        public ZaberCTRL()
+        {
+            motor = new SerialPort();
+            motor.BaudRate = 115200;
+            motor.DataBits = 8;
+            motor.Parity = Parity.None;
+            motor.StopBits = StopBits.One;
+            motor.DiscardNull = false;
+            motor.DtrEnable = false;
+            motor.Handshake = Handshake.None;
+            motor.NewLine = "\r\n";
+            motor.ReadTimeout = 1000;    //Timeout after 1 second
+        }
+        public bool OpenZaber()
+        {
+            string[] ports = SerialPort.GetPortNames();
+            foreach (string port in ports)
+            {
+                motor.PortName = port;
+                try
+                {
+                    motor.Open();
+                    motor.DiscardInBuffer();
+                    motor.Write("/get deviceid\r\n");
+                    mData = motor.ReadLine();
+                    mData = mData.Substring(mData.Length - 5, 5);
+                    if (mData == "50009")
+                    {
+                        mData = sendCMD("/get resolution");
+                        LimitMaxSpeed = Convert.ToInt32(getValue(mData)) * 16384;
+                        return (true);
+                    }
+                    motor.Close();
+                }
+                catch (Exception ex)
+                {
+                    wStr = ex.Message;
+                    motor.Close();
+                }
+            }
+            return (false);
+        }
+        public bool Home()
+        {
+            mData = sendCMD("/home");
+            return (mData.Contains("OK"));
+        }
+        public bool Parking
+        {
+            get
+            {
+                mData = sendCMD("/tools parking state");
+                return Convert.ToBoolean(getValue(mData));
+            }
+            set
+            {
+                switch (value)
+                {
+                    case true:
+                        mData = sendCMD("/tools parking park");
+                        break;
+                    case false:
+                        mData = sendCMD("/tools parking unpark");
+                        break;
+                }
+            }
+        }
+        public double GetPos()
+        {
+            try
+            {
+                mData = sendCMD("/get pos");
+                encoderPos = Convert.ToInt64(getValue(mData));
+                mData = sendCMD("/warnings");
+                if (!mData.Contains("00"))
+                {
+                    wStr = "myData";
+                }
+            }
+            catch
+            {
+
+            }
+            
+            return (Convert.ToDouble(encoderPos) * DEGPSTEP);
+        }
+        public bool MoveABS(Double Angle)
+        {
+            long mStep = Convert.ToInt64(Angle / DEGPSTEP);
+            mData = sendCMD("/move abs " + mStep.ToString());
+            return (mData.Contains("OK"));
+        }
+        public long MaxSpeedLimit
+        {
+            get
+            {
+                return (LimitMaxSpeed);
+            }
+        }
+        public long MaxSpeed
+        {
+            get
+            {
+                mData = sendCMD("/get maxspeed");
+                return Convert.ToInt64(getValue(mData));
+            }
+            set
+            {
+                if (value <= LimitMaxSpeed && value > 0) mData = sendCMD("/set maxspeed " + value.ToString());
+            }
+        }
+        public int Accelonly
+        {
+            get
+            {
+                mData = sendCMD("/get motion.accelonly");
+                return (Convert.ToInt32(getValue(mData)));
+            }
+            set
+            {
+                if (value >= 0 && value <= 32767) mData = sendCMD("/set motion.accelonly " + value.ToString()); 
+            }
+        }
+        public int Decelonly
+        {
+            get
+            {
+                mData = sendCMD("/get motion.decelonly");
+                return (Convert.ToInt32(getValue(mData)));
+            }
+            set
+            {
+                if (value >= 0 && value <= 32767) mData = sendCMD("/set motion.decelonly " + value.ToString());
+            }
+        }
+        public long LimitMinStep
+        {
+            get
+            {
+                mData = sendCMD("/get limit.min");
+                return (Convert.ToInt64(getValue(mData)));
+            }
+            set
+            {
+                 if (value >= -1000000000 && value <= 1000000000) mData = sendCMD("/set limit.min " + value.ToString());
+            }
+        }
+        public long LimitMaxStep
+        {
+            get
+            {
+                mData = sendCMD("/get limit.max");
+                return (Convert.ToInt64(getValue(mData)));
+            }
+            set
+            {
+                if (value >= -1000000000 && value <= 1000000000) mData = sendCMD("/set limit.max " + value.ToString());
+            }
+        }
+        public void ClearWarnings()
+        {
+            mData = sendCMD("/warnings clear");
+        }
+        public bool isMotorBusy()
+        {
+            try
+            {
+                mData = sendCMD("/get pos");
+            }
+            catch
+            {
+
+            }
+            return (mData.Contains("BUSY"));
+        }
+        public bool Restore()
+        {
+            mData = sendCMD("/system restore");
+            return (mData.Contains("OK"));
+        }
+        public bool Reset()
+        {
+            mData = sendCMD("/system rest");
+            return mData.Contains("OK");
+        }
+        public long MaxNumberSteps()
+        {
+            return Convert.ToInt64(360.0 / DEGPSTEP);
+        }
+        private string getValue(string value)
+        {
+            char[] chrSpace = " ".ToCharArray();
+            return (value.Substring(value.LastIndexOfAny(chrSpace)).Trim());
+        }
+        private string sendCMD(string cmd)
+        {
+            string ReturnValue = null;
+            if (!isPortBusy())
+            {
+                portBusy = true;
+                try
+                {
+                    motor.DiscardInBuffer();
+                    motor.Write(cmd + "\r\n");
+                    motor.ReadTimeout = 1000;
+                    ReturnValue = motor.ReadLine();
+                }
+                catch
+                {
+                    return (null);
+                }
+                portBusy = false;
+            }
+            else
+            {
+                ReturnValue = "-1";
+            }
+            return (ReturnValue);
+        }
+        private bool isPortBusy()
+        {
+            Stopwatch msw = new Stopwatch();        //Define a stopwatch
+            long timeout = 1000;        //Time out in 1 second
+            msw.Start();                //Start stopwatch   
+            while (msw.ElapsedMilliseconds < timeout)          //Check if time out
+            {
+                if (!portBusy) return false;     //if port is not busy return a false
+            }
+            msw.Stop();
+            return (true);  //port is lock and timed out
+            
+        }
+        public void Close()
+        {
+            motor.Close();
+        }
+
+    }
+}
+*/
