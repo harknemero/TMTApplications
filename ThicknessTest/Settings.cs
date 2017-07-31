@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Thickness_Test_Settings
 {
-    class Settings
+    public class Settings
     {
         private double intervalLengthMM;
         private int numOfIntervals;
@@ -18,7 +18,7 @@ namespace Thickness_Test_Settings
         // Should only run in the event that no settings files are found.
         public Settings()
         {
-            intervalLengthMM = 25.4;
+            intervalLengthMM = 76.2;
             numOfIntervals = 9;
             numOfRows = 12;
             zaberOrigin = 330974;

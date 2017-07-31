@@ -6,6 +6,7 @@ using System.Windows.Forms;
 using Zaber_Track_System;
 using Thickness_Test_Settings;
 using Thickness_Data;
+using Keyence_Laser;
 
 namespace ThicknessTest
 {
@@ -15,31 +16,20 @@ namespace ThicknessTest
         static void Main()
         {
             ZaberCTRL zaber = new ZaberCTRL();
+            zaber.openZaber();
+            zaber.goHome();
+            Settings settings = new Settings();
+            ThicknessData data = new ThicknessData(settings.NumOfRows, settings.NumOfIntervals);
+            KeyenceCTRL keyence = new KeyenceCTRL();            
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Form1());
-        }
+            Form1 form1 = new Form1(zaber, keyence, settings, data);
+            Application.Run(form1);
 
-        static void runRowThicknessTest(ZaberCTRL zaber, Settings settings, int rowNum)
-        {
-            try
-            {
-                if(zaber.getPos() != settings.ZaberOrigin)
-                {
-                    zaber.moveABS(settings.ZaberOrigin);
-                }
-                for(int count = 0; count < settings.NumOfIntervals; count++)
-                {
-                    zaber.moveRel(settings.IntervalLengthMM, settings.DirFromOrigin);
-                    System.Threading.Thread.Sleep(500);
-                    // 
-                }
-            }
-            catch
-            {
-
-            }
+            zaber.goHome();
+            zaber.finishMove();
+            zaber.Close();
         }
     }
 }

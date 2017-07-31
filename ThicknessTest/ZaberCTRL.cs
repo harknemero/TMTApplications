@@ -66,9 +66,33 @@ namespace Zaber_Track_System
             }
             return (false);
         }
-        public bool goHome()
+        // Returns true when motor is no longer busy. Returns false if wait exeeds maxWaits*sleepLength.
+        // If motor is busy longer than the max wait time, a stop command will be sent to the zaber.
+        public bool finishMove()
+        {
+            int maxWaits = 100;
+            int sleepLength = 100; //milliseconds
+            int count = 0;
+            while (isMotorBusy())
+            {
+                if (count >= maxWaits)
+                {
+                    stopMotor();
+                    return false;
+                }
+                System.Threading.Thread.Sleep(sleepLength);
+                count++;
+            }
+            return true;
+        }
+        public bool goHome() // sends mount to home (or zero) position.
         {
             mData = sendCMD("/home");
+            return (mData.Contains("OK"));
+        }
+        public bool stopMotor() // stops the zaber motor.
+        {
+            mData = sendCMD("/stop");
             return (mData.Contains("OK"));
         }
         public bool Parking
@@ -117,7 +141,8 @@ namespace Zaber_Track_System
         // direction should have a value of either 1 (away from home) or -1 (toward home).
         public bool moveRel(double millimeters, int direction)
         {
-            mData = sendCMD("/move abs " + (direction * Convert.ToInt32(millimeters * stepsPerMM)));
+            mData = sendCMD("/move rel " + (direction * Convert.ToInt32(millimeters * stepsPerMM)));
+            System.Console.WriteLine(mData);
             return (mData.Contains("OK"));
         }
         public int getMaxSpeed()
@@ -171,10 +196,10 @@ namespace Zaber_Track_System
             }
             return (ReturnValue);
         }
-        private bool isPortBusy()
+        public bool isPortBusy()
         {
             Stopwatch msw = new Stopwatch();        //Define a stopwatch
-            long timeout = 1000;        //Time out in 1 second
+            long timeout = 100;        //Time out in .1 second
             msw.Start();                //Start stopwatch   
             while (msw.ElapsedMilliseconds < timeout)          //Check if time out
             {
