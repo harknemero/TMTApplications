@@ -18,7 +18,13 @@ Features
 	Settings
 		Interval length in millimeters
 		Number of intervals
-	Redo row - returns to origin and tests same row, saving over previous row data
+		Number of rows
+		Origin position
+		Direction from Origin
+		Target Thickness
+		Acceptable range (distance from Target thickness)
+		Error range (distance from Target thickness) - indication that keyence thickness sample failed.
+	Row Selection - User can control which row is tested, and can test over previously tested rows.
 
 
 

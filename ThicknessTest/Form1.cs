@@ -36,7 +36,7 @@ namespace ThicknessTest
             
         }
 
-        private void runRowThicknessTest()
+        private void runRowThicknessTestRoutine()
         {
             try
             {
@@ -76,15 +76,24 @@ namespace ThicknessTest
             for(int row = 0; row < settings.NumOfIntervals; row++)
             {
                 for(int column = 0; column < settings.NumOfRows; column++)
-                {                    
-                    string value = string.Format("{0:00.00}", data.getValueAt(column, row));
+                {
+                    double value = data.getValueAt(column, row);
+                    string valueString = string.Format("{0:00.00}", data.getValueAt(column, row));
                     if(row == currentInterval && column == currentRow)
                     {
-                        richTextBox1.AppendText("  " + value + "  ", Color.Green);
+                        richTextBox1.AppendText("  " + valueString + "  ", Color.Green);
+                    }
+                    else if(value < settings.TargetThickness - settings.ErrorRange || value > settings.TargetThickness + settings.ErrorRange)
+                    {
+                        richTextBox1.AppendText("  " + valueString + "  ", Color.White);
+                    }
+                    else if(value < settings.TargetThickness - settings.AcceptableRange)
+                    {
+                        richTextBox1.AppendText("  " + valueString + "  ", Color.Red);
                     }
                     else
                     {
-                        richTextBox1.AppendText("  " + value + "  ");
+                        richTextBox1.AppendText("  " + valueString + "  ");
                     }
                 }
                 richTextBox1.AppendText("\n\n");
@@ -105,7 +114,7 @@ namespace ThicknessTest
         private void TestRowButton_Click(object sender, EventArgs e)
         {
             Console.WriteLine("TestRowButton Pushed.");
-            runRowThicknessTest();
+            runRowThicknessTestRoutine();
         }  
         
         private void textBox1_TextChanged(object sender, EventArgs e)
@@ -159,6 +168,6 @@ namespace ThicknessTest
             box.SelectionColor = color;
             box.AppendText(text);
             box.SelectionColor = box.ForeColor;
-        }
+        }        
     }
 }
