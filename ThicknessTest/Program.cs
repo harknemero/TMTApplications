@@ -15,12 +15,18 @@ namespace ThicknessTest
         [STAThread]
         static void Main()
         {
+            Settings settings = new Settings();
+            ThicknessData data = new ThicknessData(settings.NumOfRows, settings.NumOfIntervals);
+            KeyenceCTRL keyence = new KeyenceCTRL();
             ZaberCTRL zaber = new ZaberCTRL();
             zaber.openZaber();
             zaber.goHome();
-            Settings settings = new Settings();
-            ThicknessData data = new ThicknessData(settings.NumOfRows, settings.NumOfIntervals);
-            KeyenceCTRL keyence = new KeyenceCTRL();            
+            System.Threading.Thread.Sleep(200);
+            if(zaber.getPos() == 0)
+            {
+                zaber.moveABS(settings.ZaberOrigin);
+            }
+                      
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);

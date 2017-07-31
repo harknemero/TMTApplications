@@ -79,17 +79,17 @@ namespace ThicknessTest
                 {
                     double value = data.getValueAt(column, row);
                     string valueString = string.Format("{0:00.00}", data.getValueAt(column, row));
-                    if(row == currentInterval && column == currentRow)
-                    {
-                        richTextBox1.AppendText("  " + valueString + "  ", Color.Green);
-                    }
-                    else if(value < settings.TargetThickness - settings.ErrorRange || value > settings.TargetThickness + settings.ErrorRange)
+                    if(value < settings.TargetThickness - settings.ErrorRange || value > settings.TargetThickness + settings.ErrorRange)
                     {
                         richTextBox1.AppendText("  " + valueString + "  ", Color.White);
                     }
                     else if(value < settings.TargetThickness - settings.AcceptableRange)
                     {
                         richTextBox1.AppendText("  " + valueString + "  ", Color.Red);
+                    }
+                    else if (row == currentInterval && column == currentRow)
+                    {// Indicates the most recent sample taken, unless that sample is flagged a different color.
+                        richTextBox1.AppendText("  " + valueString + "  ", Color.Green);
                     }
                     else
                     {
@@ -128,9 +128,7 @@ namespace ThicknessTest
             {
                 currentRow = Convert.ToInt32(textBox1.Text) - 1;
             }
-
-            Update();
-
+            textBox1.Update();
         }
 
         // Prev button. Subtracts 1 from text box value and currentRow variable.
