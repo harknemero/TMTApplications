@@ -26,12 +26,21 @@ namespace ThicknessTest
             {
                 zaber.moveABS(settings.ZaberOrigin);
             }
-                      
 
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-            Form1 form1 = new Form1(zaber, keyence, settings, data);
-            Application.Run(form1);
+            try
+            {
+                Application.EnableVisualStyles();
+                Application.SetCompatibleTextRenderingDefault(false);
+                Form1 form1 = new Form1(zaber, keyence, settings, data);
+                Application.Run(form1);
+            }
+            catch
+            {
+                zaber.goHome();
+                zaber.finishMove();
+                zaber.Close();
+                return;
+            }
 
             zaber.goHome();
             zaber.finishMove();

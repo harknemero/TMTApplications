@@ -10,14 +10,36 @@ namespace Thickness_Data
     public class ThicknessData
     {
         private RowData[] Data;
+        private int numOfRows;
+        private int numOfIntervals;
 
-        public ThicknessData(int numOfRows, int numOfIntervals)
+        public ThicknessData(int r, int i)
         {
+            numOfRows = r;
+            numOfIntervals = i;
+
             Data = new RowData[numOfRows];
             for(int count = 0; count < numOfRows; count++)
             {
                 Data[count] = new RowData(numOfIntervals);
             }
+        }
+
+        public string toString()
+        {
+            StringBuilder sb = new StringBuilder();
+
+            for (int row = numOfIntervals - 1; row >= 0; row--)
+            {
+                sb.Append("" + getValueAt(0, row));
+                for(int column = 1; column < numOfRows; column++)
+                {
+                    sb.Append("," + getValueAt(column, row));
+                }
+                sb.Append("\n");
+            }
+
+            return sb.ToString();
         }
 
         public void recordData(int row, int interval, double value)
@@ -60,6 +82,6 @@ namespace Thickness_Data
                 Console.WriteLine("Error accessing rowData element!");
                 return 0;
             }
-        }
+        }        
     }
 }

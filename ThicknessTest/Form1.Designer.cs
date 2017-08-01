@@ -31,7 +31,7 @@
             this.components = new System.ComponentModel.Container();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
-            this.thicknessDataBindingSource = new System.Windows.Forms.BindingSource(this.components);
+            this.richTextBox1 = new System.Windows.Forms.RichTextBox();
             this.button2 = new System.Windows.Forms.Button();
             this.button1 = new System.Windows.Forms.Button();
             this.textBox1 = new System.Windows.Forms.TextBox();
@@ -39,11 +39,13 @@
             this.panel1 = new System.Windows.Forms.Panel();
             this.label1 = new System.Windows.Forms.Label();
             this.tabPage2 = new System.Windows.Forms.TabPage();
-            this.richTextBox1 = new System.Windows.Forms.RichTextBox();
+            this.thicknessDataBindingSource = new System.Windows.Forms.BindingSource(this.components);
+            this.button3 = new System.Windows.Forms.Button();
+            this.button4 = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.thicknessDataBindingSource)).BeginInit();
             this.panel1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.thicknessDataBindingSource)).BeginInit();
             this.SuspendLayout();
             // 
             // tabControl1
@@ -58,6 +60,8 @@
             // 
             // tabPage1
             // 
+            this.tabPage1.Controls.Add(this.button4);
+            this.tabPage1.Controls.Add(this.button3);
             this.tabPage1.Controls.Add(this.richTextBox1);
             this.tabPage1.Controls.Add(this.button2);
             this.tabPage1.Controls.Add(this.button1);
@@ -73,9 +77,16 @@
             this.tabPage1.UseVisualStyleBackColor = true;
             this.tabPage1.Click += new System.EventHandler(this.tabPage1_Click);
             // 
-            // thicknessDataBindingSource
+            // richTextBox1
             // 
-            this.thicknessDataBindingSource.DataSource = typeof(Thickness_Data.ThicknessData);
+            this.richTextBox1.Location = new System.Drawing.Point(6, 36);
+            this.richTextBox1.Name = "richTextBox1";
+            this.richTextBox1.ReadOnly = true;
+            this.richTextBox1.Size = new System.Drawing.Size(705, 318);
+            this.richTextBox1.TabIndex = 6;
+            this.richTextBox1.Text = "";
+            this.richTextBox1.WordWrap = false;
+            this.richTextBox1.TextChanged += new System.EventHandler(this.richTextBox1_TextChanged);
             // 
             // button2
             // 
@@ -112,9 +123,9 @@
             // 
             this.RunTestButton.Location = new System.Drawing.Point(6, 6);
             this.RunTestButton.Name = "RunTestButton";
-            this.RunTestButton.Size = new System.Drawing.Size(75, 24);
+            this.RunTestButton.Size = new System.Drawing.Size(95, 24);
             this.RunTestButton.TabIndex = 1;
-            this.RunTestButton.Text = "Test Row";
+            this.RunTestButton.Text = "Run Sequence";
             this.RunTestButton.UseVisualStyleBackColor = true;
             this.RunTestButton.Click += new System.EventHandler(this.TestRowButton_Click);
             // 
@@ -146,16 +157,29 @@
             this.tabPage2.Text = "Settings";
             this.tabPage2.UseVisualStyleBackColor = true;
             // 
-            // richTextBox1
+            // thicknessDataBindingSource
             // 
-            this.richTextBox1.Location = new System.Drawing.Point(6, 36);
-            this.richTextBox1.Name = "richTextBox1";
-            this.richTextBox1.ReadOnly = true;
-            this.richTextBox1.Size = new System.Drawing.Size(705, 318);
-            this.richTextBox1.TabIndex = 6;
-            this.richTextBox1.Text = "";
-            this.richTextBox1.WordWrap = false;
-            this.richTextBox1.TextChanged += new System.EventHandler(this.richTextBox1_TextChanged);
+            this.thicknessDataBindingSource.DataSource = typeof(Thickness_Data.ThicknessData);
+            // 
+            // button3
+            // 
+            this.button3.Location = new System.Drawing.Point(644, 6);
+            this.button3.Name = "button3";
+            this.button3.Size = new System.Drawing.Size(67, 24);
+            this.button3.TabIndex = 7;
+            this.button3.Text = "Save";
+            this.button3.UseVisualStyleBackColor = true;
+            this.button3.Click += new System.EventHandler(this.button3_Click);
+            // 
+            // button4
+            // 
+            this.button4.Location = new System.Drawing.Point(571, 6);
+            this.button4.Name = "button4";
+            this.button4.Size = new System.Drawing.Size(67, 24);
+            this.button4.TabIndex = 8;
+            this.button4.Text = "Clear Data";
+            this.button4.UseVisualStyleBackColor = true;
+            this.button4.Click += new System.EventHandler(this.button4_Click);
             // 
             // Form1
             // 
@@ -169,9 +193,9 @@
             this.tabControl1.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
             this.tabPage1.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.thicknessDataBindingSource)).EndInit();
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.thicknessDataBindingSource)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -189,6 +213,8 @@
         private System.Windows.Forms.Button button2;
         private System.Windows.Forms.BindingSource thicknessDataBindingSource;
         private System.Windows.Forms.RichTextBox richTextBox1;
+        private System.Windows.Forms.Button button3;
+        private System.Windows.Forms.Button button4;
     }
 }
 

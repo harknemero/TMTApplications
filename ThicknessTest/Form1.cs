@@ -11,6 +11,7 @@ using Thickness_Data;
 using Thickness_Test_Settings;
 using Zaber_Track_System;
 using Keyence_Laser;
+using System.IO;
 
 namespace ThicknessTest
 {
@@ -33,7 +34,8 @@ namespace ThicknessTest
             lastSample = 0;
 
             InitializeComponent();
-            
+
+            dataTextUpdate(0);
         }
 
         private void runRowThicknessTestRoutine()
@@ -117,6 +119,7 @@ namespace ThicknessTest
             runRowThicknessTestRoutine();
         }  
         
+        // 
         private void textBox1_TextChanged(object sender, EventArgs e)
         {    
             if (Convert.ToInt32(textBox1.Text) < 1 || Convert.ToInt32(textBox1.Text) > settings.NumOfRows)
@@ -153,6 +156,33 @@ namespace ThicknessTest
         private void richTextBox1_TextChanged(object sender, EventArgs e)
         {
 
+        }
+
+        // Save button
+        private void button3_Click(object sender, EventArgs e)
+        {
+            SaveFileDialog saveFileDialog1 = new SaveFileDialog();
+
+            saveFileDialog1.Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
+            saveFileDialog1.AddExtension = true;
+            saveFileDialog1.DefaultExt = ".csv";
+            saveFileDialog1.FilterIndex = 2;
+            saveFileDialog1.RestoreDirectory = true;
+
+            if (saveFileDialog1.ShowDialog() == DialogResult.OK)
+            {
+                StreamWriter myStream = new StreamWriter(saveFileDialog1.FileName);
+                myStream.Write(data.toString());
+                myStream.Close();
+            }
+        }
+
+        // Clear Data button
+        private void button4_Click(object sender, EventArgs e)
+        {
+            data = new ThicknessData(settings.NumOfRows, settings.NumOfIntervals);
+            textBox1.Text = "1";
+            dataTextUpdate(0);
         }
     }
 
