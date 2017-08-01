@@ -16,6 +16,8 @@ namespace Thickness_Test_Settings
         private double targetThickness;
         private double acceptableRange;
         private double errorRange;
+        private bool isLengthInMillimeters;
+        private int sampleSize;
 
         // This constructor loads some default settings.
         // Should only run in the event that no settings files are found.
@@ -29,6 +31,8 @@ namespace Thickness_Test_Settings
             targetThickness = 12.25;
             acceptableRange = 0.5;
             errorRange = 2;
+            isLengthInMillimeters = true;
+            sampleSize = 100;
         }
 
         public void refreshSettings(string fileName)
@@ -44,6 +48,8 @@ namespace Thickness_Test_Settings
         public double TargetThickness { get => targetThickness; set => targetThickness = value; }
         public double AcceptableRange { get => acceptableRange; set => acceptableRange = value; }
         public double ErrorRange { get => errorRange; set => errorRange = value; }
+        public bool IsLengthInMillimeters { get => isLengthInMillimeters; set => isLengthInMillimeters = value; }
+        public int SampleSize { get => sampleSize; set => sampleSize = value; }
     }
 
     

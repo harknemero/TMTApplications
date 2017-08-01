@@ -184,6 +184,21 @@ namespace ThicknessTest
             textBox1.Text = "1";
             dataTextUpdate(0);
         }
+
+        private void radioButton2_CheckedChanged(object sender, EventArgs e)
+        {
+            settings.IsLengthInMillimeters = false;
+        }
+
+        private void radioButton1_CheckedChanged(object sender, EventArgs e)
+        {
+            settings.IsLengthInMillimeters = true;
+        }
+
+        private void radioButton3_CheckedChanged(object sender, EventArgs e)
+        {
+
+        }
     }
 
     public static class RichTextBoxExtensions
