@@ -22,8 +22,8 @@ namespace Thickness_Test_Settings
         public Settings()
         {
             intervalLengthMM = 76.2;
-            numOfIntervals = 9;
-            numOfRows = 12;
+            numOfIntervals = 10;
+            numOfRows = 13;
             zaberOrigin = 330974;
             dirFromOrigin = -1;
             targetThickness = 12.25;

@@ -16,7 +16,15 @@ namespace Keyence_Laser
 
         public double takeSample()
         {
-            return 0;
+            return randomTestData();
+        }
+
+        public double randomTestData()
+        {
+            Random rand = new Random();
+            double value = (rand.NextDouble()*6)+9;
+
+            return value;
         }
     }
 }

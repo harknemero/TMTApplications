@@ -73,7 +73,7 @@ namespace ThicknessTest
         private void dataTextUpdate(int currentInterval)
         {
             richTextBox1.Clear();
-            for(int row = 0; row < settings.NumOfIntervals; row++)
+            for(int row = settings.NumOfIntervals-1; row >= 0; row--)
             {
                 for(int column = 0; column < settings.NumOfRows; column++)
                 {
@@ -81,7 +81,7 @@ namespace ThicknessTest
                     string valueString = string.Format("{0:00.00}", data.getValueAt(column, row));
                     if(value < settings.TargetThickness - settings.ErrorRange || value > settings.TargetThickness + settings.ErrorRange)
                     {
-                        richTextBox1.AppendText("  " + valueString + "  ", Color.White);
+                        richTextBox1.AppendText("  " + valueString + "  ", Color.Gray);
                     }
                     else if(value < settings.TargetThickness - settings.AcceptableRange)
                     {
