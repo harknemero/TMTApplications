@@ -16,26 +16,23 @@ namespace ThicknessTest
         static void Main()
         {
             Settings settings = new Settings();
+            Profiles profiles = new Profiles();
             ThicknessData data = new ThicknessData(settings.NumOfRows, settings.NumOfIntervals);
             KeyenceCTRL keyence = new KeyenceCTRL();
             ZaberCTRL zaber = new ZaberCTRL();
             zaber.openZaber();
             zaber.goHome();
-            System.Threading.Thread.Sleep(200);
-            if(zaber.getPos() == 0)
-            {
-                zaber.moveABS(settings.ZaberOrigin);
-            }
 
             try
             {
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);
-                Form1 form1 = new Form1(zaber, keyence, settings, data);
+                Form1 form1 = new Form1(zaber, keyence, settings, data, profiles);
                 Application.Run(form1);
             }
-            catch
+            catch(Exception arg)
             {
+                Console.WriteLine(arg.Message);
                 zaber.goHome();
                 zaber.finishMove();
                 zaber.Close();

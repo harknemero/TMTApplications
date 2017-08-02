@@ -23,6 +23,9 @@ namespace Zaber_Track_System
         string mData = "";
         string wStr = "";
         const int stepsPerMM = 237;
+        private const double trackLengthMM = 1495;
+        private const double MMperInch = 25.4;
+        private const int maxSteps = 354371;
                
         public ZaberCTRL()
         {
@@ -121,7 +124,7 @@ namespace Zaber_Track_System
             try
             {
                 mData = sendCMD("/get pos");
-                currentPos = Convert.ToInt32(mData);
+                currentPos = Convert.ToInt32(getValue(mData));
             }
             catch
             {
@@ -149,6 +152,22 @@ namespace Zaber_Track_System
         {
             mData = sendCMD("/get maxspeed");
             return Convert.ToInt32(getValue(mData));
+        }
+        public double getTrackLengthMM()
+        {
+            return trackLengthMM;
+        }
+        public double getMMperInch()
+        {
+            return MMperInch;
+        }
+        public int getMaxSteps()
+        {
+            return maxSteps;
+        }
+        public int getStepsPerMM()
+        {
+            return stepsPerMM;
         }
         public void clearWarnings()
         {
