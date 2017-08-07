@@ -403,11 +403,11 @@
             // label8
             // 
             this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(84, 135);
+            this.label8.Location = new System.Drawing.Point(102, 135);
             this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(120, 13);
+            this.label8.Size = new System.Drawing.Size(77, 13);
             this.label8.TabIndex = 10;
-            this.label8.Text = "Set Sequence Direction";
+            this.label8.Text = "Set Orientation";
             // 
             // panel2
             // 

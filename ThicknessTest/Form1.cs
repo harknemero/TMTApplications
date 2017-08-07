@@ -100,7 +100,14 @@ namespace ThicknessTest
             }
             textBox2.Text = "" + settings.NumOfRows;
             textBox3.Text = "" + settings.NumOfIntervals;
-            textBox4.Text = "" + settings.IntervalLengthMM;
+            if (settings.IsLengthInMillimeters)
+            {
+                textBox4.Text = "" + settings.IntervalLengthMM;
+            }
+            else
+            {
+                textBox4.Text = "" + settings.IntervalLengthMM / zaber.getMMperInch();
+            }
             textBox5.Text = "" + settings.TargetThickness;
             textBox6.Text = "" + settings.AcceptableRange;
             textBox7.Text = "" + settings.ErrorRange;
@@ -183,24 +190,6 @@ namespace ThicknessTest
             runRowThicknessTestRoutine();
         }  
         
-        // Set sequence number to be tested on TestRowButton_Click
-        private void textBox1_TextChanged(object sender, EventArgs e)
-        {
-            if (textBox1.Text != "")
-            {
-                if (Convert.ToInt32(textBox1.Text) < 1 || Convert.ToInt32(textBox1.Text) > settings.NumOfRows)
-                {
-                    currentRow = 0;
-                    textBox1.Text = (1 + "");
-                }
-                else
-                {
-                    currentRow = Convert.ToInt32(textBox1.Text) - 1;
-                }
-                textBox1.Update();
-            }
-        }
-
         // Prev button. Subtracts 1 from textBox1 value and currentRow variable.
         private void button1_Click(object sender, EventArgs e)
         {
@@ -221,7 +210,7 @@ namespace ThicknessTest
             }
         }
         
-        // Save button
+        // Save button. Saves ThicknessData to csv file
         private void button3_Click(object sender, EventArgs e)
         {
             SaveFileDialog saveFileDialog1 = new SaveFileDialog();
@@ -240,12 +229,19 @@ namespace ThicknessTest
             }
         }
 
-        // Clear Data button
+        // Clear Data button. Creates new empty ThicknessData using parameters from settings.
         private void button4_Click(object sender, EventArgs e)
         {
             data = new ThicknessData(settings.NumOfRows, settings.NumOfIntervals);
             textBox1.Text = "1";
             dataTextUpdate(0);
+        }
+
+        // Set Origin to current zaber position
+        private void button5_Click(object sender, EventArgs e)
+        {
+            settings.ZaberOrigin = zaber.getPos();
+            warningUpdate();
         }
 
         // Length in Millimeters radio button
@@ -266,7 +262,15 @@ namespace ThicknessTest
             if (radioButton2.Checked)
             {
                 settings.IsLengthInMillimeters = false;
-                double value = Convert.ToDouble(textBox4.Text) / zaber.getMMperInch();
+                double value;
+                if (textBox4.Text == "")
+                {
+                    value = settings.IntervalLengthMM / zaber.getMMperInch();
+                }
+                else
+                {
+                    value = Convert.ToDouble(textBox4.Text) / zaber.getMMperInch();
+                }
                 textBox4.Text = "" + (value);
                 Update();
             }
@@ -289,6 +293,24 @@ namespace ThicknessTest
             {
                 settings.DirFromOrigin = -1;
                 warningUpdate();
+            }
+        }
+
+        // Set sequence number to be tested on TestRowButton_Click
+        private void textBox1_TextChanged(object sender, EventArgs e)
+        {
+            if (textBox1.Text != "")
+            {
+                if (Convert.ToInt32(textBox1.Text) < 1 || Convert.ToInt32(textBox1.Text) > settings.NumOfRows)
+                {
+                    currentRow = 0;
+                    textBox1.Text = (1 + "");
+                }
+                else
+                {
+                    currentRow = Convert.ToInt32(textBox1.Text) - 1;
+                }
+                textBox1.Update();
             }
         }
 
@@ -359,14 +381,7 @@ namespace ThicknessTest
             }
             Update();
         }
-
-        // Set Origin to current zaber position
-        private void button5_Click(object sender, EventArgs e)
-        {
-            settings.ZaberOrigin = zaber.getPos();
-            warningUpdate();
-        }
-
+        
         // Set Target Thickness
         private void textBox5_TextChanged(object sender, EventArgs e)
         {

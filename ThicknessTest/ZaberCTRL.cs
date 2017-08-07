@@ -22,6 +22,7 @@ namespace Zaber_Track_System
         int MaxAccel = 40;
         string mData = "";
         string wStr = "";
+        string deviceID = "50186";
         const int stepsPerMM = 237;
         private const double trackLengthMM = 1495;
         private const double MMperInch = 25.4;
@@ -48,18 +49,21 @@ namespace Zaber_Track_System
                 motor.PortName = port;
                 try
                 {
-                    motor.Open();
-                    motor.DiscardInBuffer();
-                    motor.Write("/get deviceid\r\n");
-                    mData = motor.ReadLine();
-                    mData = mData.Substring(mData.Length - 5, 5);
-                    if (mData == "50186")
+                    if (!motor.IsOpen)
                     {
-                        mData = sendCMD("/set maxspeed " + MaxSpeed);
-                        mData = sendCMD("/set accel " + MaxAccel);
-                        return (true);
+                        motor.Open();
+                        motor.DiscardInBuffer();
+                        motor.Write("/get deviceid\r\n");
+                        mData = motor.ReadLine();
+                        mData = mData.Substring(mData.Length - 5, 5);
+                        if (mData == deviceID)
+                        {
+                            mData = sendCMD("/set maxspeed " + MaxSpeed);
+                            mData = sendCMD("/set accel " + MaxAccel);
+                            return (true);
+                        }
+                        motor.Close();
                     }
-                    motor.Close();
                 }
                 catch (Exception ex)
                 {

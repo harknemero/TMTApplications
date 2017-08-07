@@ -19,6 +19,7 @@ namespace ThicknessTest
             Profiles profiles = new Profiles();
             ThicknessData data = new ThicknessData(settings.NumOfRows, settings.NumOfIntervals);
             KeyenceCTRL keyence = new KeyenceCTRL();
+            keyence.openKeyence();
             ZaberCTRL zaber = new ZaberCTRL();
             zaber.openZaber();
             zaber.goHome();
