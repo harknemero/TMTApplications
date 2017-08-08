@@ -31,18 +31,22 @@ namespace ThicknessTest
                 Form1 form1 = new Form1(zaber, keyence, settings, data, profiles);
                 Application.Run(form1);
             }
-            catch(Exception arg)
+            catch
             {
-                Console.WriteLine(arg.Message);
+                Console.WriteLine("Unknown Exception Occured");
                 zaber.goHome();
                 zaber.finishMove();
                 zaber.Close();
+                keyence.Close();
                 return;
             }
 
-            zaber.goHome();
-            zaber.finishMove();
-            zaber.Close();
+            finally {
+                zaber.goHome();
+                zaber.finishMove();
+                zaber.Close();
+                keyence.Close();
+            }
         }
     }
 }

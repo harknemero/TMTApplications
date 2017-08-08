@@ -10,8 +10,8 @@ namespace Keyence_Laser
     public class KeyenceCTRL
     {
         SerialPort laser;
-        string kData;
-        string badCommandResponse; // Right now this is used to verify correct device. If necessary, change value in constructor.
+        string[] kData;
+        string[] badCommandResponse; // Right now this is used to verify correct device. If necessary, change value in constructor.
 
         public KeyenceCTRL()
         {
@@ -25,8 +25,8 @@ namespace Keyence_Laser
             laser.RtsEnable = true;
             laser.NewLine = "\r\n";
 
-            kData = "";
-            badCommandResponse = "ER,BA,00\r"; // Right now this is used to verify correct device.
+            kData = null;
+            badCommandResponse = new string[]{ "ER","BA","00\r"}; // Right now this is used to verify correct device.
 
 
         }
@@ -48,7 +48,7 @@ namespace Keyence_Laser
                         laser.DiscardInBuffer();                        
                         laser.WriteLine("Bad Command\r\n");
                         kData = getResponse();
-                        if (kData == badCommandResponse)
+                        if (kData[0] == badCommandResponse[0] && kData[1] == badCommandResponse[1] && kData[2] == badCommandResponse[2])
                         {
                             return true;
                         }
@@ -69,6 +69,112 @@ namespace Keyence_Laser
             return false;
         }
 
+        public void Close()
+        {
+            laser.Close();
+        }
+
+        public double averageOfXSamples(int samplesNeeded, double target, double errorRange)
+        {
+            double avgThickness = 0;
+
+            try
+            {
+                laser.DiscardInBuffer();
+            }
+            catch
+            {
+                // Do nothing. This doesn't look important, but it is...
+            }
+            laser.Write("AQ\r\n"); // Initialize Storage
+            kData = getResponse();
+            if(kData[0] != "AQ\r")
+            {
+                throw new System.ArgumentException("No Response Received From Keyence!");
+            }
+            try
+            {
+                int count = 0;
+                while (count < samplesNeeded)
+                {
+                    laser.Write("AS\r\n"); // Begin Collecting Data
+                    while (count < samplesNeeded)
+                    {
+                        laser.DiscardInBuffer();
+                        laser.Write("AN\r\n"); // Get Sample Count
+                        kData = getResponse();
+                        count = Convert.ToInt32(kData[2]);
+                    }
+                    System.Threading.Thread.Sleep(20);
+                    laser.DiscardInBuffer();
+                    laser.Write("AP\r\n"); //Stop Collecting Data
+//                    laser.DiscardInBuffer();
+//                    laser.Write("AN\r\n"); // Get Sample Count
+                    kData = getResponse();
+//                    count = Convert.ToInt32(kData[2]);
+                    if (count == 0)
+                    {
+                        throw new System.ArgumentException("Keyence Collected No Data over 10ms!");
+                    }
+                    Console.WriteLine("Keyence has collected " + count + " samples.");
+                }
+                laser.DiscardInBuffer();
+                laser.Write("AO,1\r\n"); // Get All Stored Samples
+                System.Threading.Thread.Sleep(50 + count*10); // It's possible that running getResponse() immediately after AO,1
+                // will result in getting a partial response. Placing a sleep here may be more feasible than trying
+                // to determine whether the response is completely loaded in getResponse();
+                kData = getResponse();
+                List<double> goodValues = new List<double>();
+                List<double> badValues = new List<double>();
+                double value = 0;
+                for (count = 1; count < kData.Length; count++)
+                {
+                    if (kData[count].Contains("-") || kData[count] == "")
+                    {
+                        value = 0;
+                    }
+                    else
+                    {
+                        value = Convert.ToDouble(kData[count]);
+                    }
+                    if (value > target - errorRange && value < target + errorRange)
+                    {
+                        goodValues.Add(value);
+                    }
+                    else
+                    {
+                        badValues.Add(value);
+                    }
+                }
+                Console.WriteLine("Good values: " + goodValues.Count + "\nBad values: " + badValues.Count);
+                double sum = 0;
+                int entries = 0;
+                if (goodValues.Count >= badValues.Count)
+                {
+                    entries = goodValues.Count;
+                    foreach (double entry in goodValues)
+                    {
+                        sum += entry;
+                    }
+                }
+                else
+                {
+                    entries = badValues.Count;
+                    foreach (double entry in goodValues)
+                    {
+                        sum += entry;
+                    }
+                }
+                avgThickness = sum / entries;
+            }
+            catch
+            {
+                int nothing = 0;
+            }
+
+            return avgThickness;
+        }
+
         public double takeSample()
         {
             double thickness = 0;
@@ -76,12 +182,18 @@ namespace Keyence_Laser
             laser.DiscardInBuffer();
             laser.Write("M0\r\n");
             kData = getResponse();
-            responseItems = kData.Split(',');
-            if(responseItems != null)
+            if(kData != null)
             {
-                if(responseItems[0] != "ER")
+                if(kData[0] != "ER")
                 {
-                    thickness = Convert.ToDouble(responseItems[1]);
+                    if (kData[1] == "-FFFFFFF" || kData[1] == "-FFFFFF")
+                    {
+                        thickness = 0;
+                    }
+                    else
+                    {
+                        thickness = Convert.ToDouble(kData[1]);
+                    }
                 }
             }            
 
@@ -97,15 +209,25 @@ namespace Keyence_Laser
             return value;
         }
 
-        private string getResponse()
+        // Returns array of strings representing the Keyence response.
+        private string[] getResponse()
         {
-            string response = laser.ReadExisting();
+            System.Threading.Thread.Sleep(10);
+            string value = laser.ReadExisting();
+            Console.WriteLine("Response: " + value);
             int tics = 0;
-            while(response == "" && tics < 20)
+            int ticLimit = 50;
+            while(value == "" && tics < ticLimit)
             {
-                System.Threading.Thread.Sleep(100);
-                response = laser.ReadExisting();
+                System.Threading.Thread.Sleep(20);
+                value = laser.ReadExisting();
+                tics++;
             }
+            if(tics == ticLimit)
+            {
+                throw new System.ArgumentException("No Response From Keyence!");
+            }
+            string[] response = value.Split(',');
 
             return response;
         }

@@ -55,15 +55,44 @@ namespace ThicknessTest
                     zaber.moveABS(settings.ZaberOrigin);
                     zaber.finishMove();
                 }
+                
+                double offset = 0; // This variable is used to keep track of offset positions in the event
+                // that Active Error Correction is activated.
+                double retestDistance = 5; // This is how far the zaber moves from position to take a new sample.
                 for (int count = 0; count < settings.NumOfIntervals; count++)
-                {
-                    int counter = 0; // for troubleshooting. delete later
-                    zaber.moveRel(settings.IntervalLengthMM, settings.DirFromOrigin);
-                    zaber.finishMove();
-                    lastSample = keyence.takeSample();
+                {                    
+                    lastSample = keyence.averageOfXSamples(settings.SampleSize, settings.TargetThickness, settings.ErrorRange);
+                    // Active Error Correction Round 1
+                    if (lastSample < settings.TargetThickness - settings.ErrorRange || 
+                        lastSample > settings.TargetThickness + settings.ErrorRange)
+                    {
+                        zaber.moveRel(retestDistance, settings.DirFromOrigin * (-1));
+                        offset = retestDistance;
+                        zaber.finishMove();
+                        System.Threading.Thread.Sleep(100);
+                        lastSample = keyence.averageOfXSamples(settings.SampleSize, settings.TargetThickness, settings.ErrorRange);
+
+                        // Active Error Correction Round 2
+                        if (lastSample < settings.TargetThickness - settings.ErrorRange ||
+                        lastSample > settings.TargetThickness + settings.ErrorRange)
+                        {
+                            zaber.moveRel(retestDistance * 2, settings.DirFromOrigin);
+                            offset = retestDistance * (-1);
+                            zaber.finishMove();
+                            System.Threading.Thread.Sleep(100);
+                            lastSample = keyence.averageOfXSamples(settings.SampleSize, settings.TargetThickness, settings.ErrorRange);
+                        }
+                    }
+
                     data.recordData(currentRow, count, lastSample);
                     dataTextUpdate(count);
-                    System.Console.WriteLine("Slept " + counter + " times.");// for troubleshooting. delete later
+                    if(count + 1 < settings.NumOfIntervals)
+                    { 
+                    zaber.moveRel(settings.IntervalLengthMM + offset, settings.DirFromOrigin);
+                    offset = 0; // Offset should be corrected now. Reset to 0.
+                    zaber.finishMove();
+                    System.Threading.Thread.Sleep(200);
+                    }
                 }
                 zaber.moveABS(settings.ZaberOrigin);
                 zaber.finishMove();
