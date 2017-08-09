@@ -84,7 +84,7 @@ namespace Keyence_Laser
             }
             catch
             {
-                // Do nothing. This doesn't look important, but it is...
+                kData = getResponse(); // In case something went wrong and there is still data streaming into the buffer
             }
             laser.Write("AQ\r\n"); // Initialize Storage
             kData = getResponse();
@@ -95,34 +95,28 @@ namespace Keyence_Laser
             try
             {
                 int count = 0;
-                while (count < samplesNeeded)
+                laser.Write("AS\r\n"); // Begin Collecting Data
+                kData = getResponse();
+                int tics = 0;
+                while (count < samplesNeeded && tics < 100)
                 {
-                    laser.Write("AS\r\n"); // Begin Collecting Data
-                    while (count < samplesNeeded)
-                    {
-                        laser.DiscardInBuffer();
-                        laser.Write("AN\r\n"); // Get Sample Count
-                        kData = getResponse();
-                        count = Convert.ToInt32(kData[2]);
-                    }
-                    System.Threading.Thread.Sleep(20);
-                    laser.DiscardInBuffer();
-                    laser.Write("AP\r\n"); //Stop Collecting Data
-//                    laser.DiscardInBuffer();
-//                    laser.Write("AN\r\n"); // Get Sample Count
+                    laser.Write("AN\r\n"); // Get Sample Count
                     kData = getResponse();
-//                    count = Convert.ToInt32(kData[2]);
-                    if (count == 0)
-                    {
-                        throw new System.ArgumentException("Keyence Collected No Data over 10ms!");
-                    }
-                    Console.WriteLine("Keyence has collected " + count + " samples.");
+                    count = Convert.ToInt32(kData[2]);
+                    tics++;
                 }
-                laser.DiscardInBuffer();
+                laser.Write("AP\r\n"); //Stop Collecting Data
+                kData = getResponse();
+                laser.Write("AN\r\n"); // Get Sample Count
+                kData = getResponse();
+                count = Convert.ToInt32(kData[2]);
+                if (count == 0)
+                {
+                    throw new System.ArgumentException("No data collected.");
+                }
+                Console.WriteLine("Keyence has collected " + count + " samples.");
+                
                 laser.Write("AO,1\r\n"); // Get All Stored Samples
-                System.Threading.Thread.Sleep(50 + count*10); // It's possible that running getResponse() immediately after AO,1
-                // will result in getting a partial response. Placing a sleep here may be more feasible than trying
-                // to determine whether the response is completely loaded in getResponse();
                 kData = getResponse();
                 List<double> goodValues = new List<double>();
                 List<double> badValues = new List<double>();
@@ -146,7 +140,7 @@ namespace Keyence_Laser
                         badValues.Add(value);
                     }
                 }
-                Console.WriteLine("Good values: " + goodValues.Count + "\nBad values: " + badValues.Count);
+                Console.Write("Good values: " + goodValues.Count + ",   Bad values: " + badValues.Count);
                 double sum = 0;
                 int entries = 0;
                 if (goodValues.Count >= badValues.Count)
@@ -171,14 +165,13 @@ namespace Keyence_Laser
             {
                 int nothing = 0;
             }
-
+            Console.Write(",   Thickness: " + avgThickness + "\n");
             return avgThickness;
         }
 
         public double takeSample()
         {
             double thickness = 0;
-            string[] responseItems;
             laser.DiscardInBuffer();
             laser.Write("M0\r\n");
             kData = getResponse();
@@ -212,23 +205,22 @@ namespace Keyence_Laser
         // Returns array of strings representing the Keyence response.
         private string[] getResponse()
         {
-            System.Threading.Thread.Sleep(10);
+            System.Threading.Thread.Sleep(5);
             string value = laser.ReadExisting();
-            Console.WriteLine("Response: " + value);
             int tics = 0;
-            int ticLimit = 50;
-            while(value == "" && tics < ticLimit)
+            int ticLimit = 2000;
+            while(!value.Contains("\r") && tics < ticLimit)
             {
-                System.Threading.Thread.Sleep(20);
-                value = laser.ReadExisting();
+                System.Threading.Thread.Sleep(5);
+                value += laser.ReadExisting();
                 tics++;
             }
             if(tics == ticLimit)
             {
                 throw new System.ArgumentException("No Response From Keyence!");
             }
+            Console.Write("Response after " + tics + " tics: " + value);
             string[] response = value.Split(',');
-
             return response;
         }
 
