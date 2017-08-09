@@ -43,6 +43,17 @@ namespace Zaber_Track_System
         }
         public bool openZaber()
         {
+            portBusy = false;
+            motor = new SerialPort();
+            motor.BaudRate = 115200;
+            motor.DataBits = 8;
+            motor.Parity = Parity.None;
+            motor.StopBits = StopBits.One;
+            motor.DiscardNull = false;
+            motor.DtrEnable = false;
+            motor.Handshake = Handshake.None;
+            motor.NewLine = "\r\n";
+            motor.ReadTimeout = 1000;    //Timeout after 1 second
             string[] ports = SerialPort.GetPortNames();
             foreach (string port in ports)
             {
@@ -73,6 +84,7 @@ namespace Zaber_Track_System
             }
             return (false);
         }
+
         // Returns true when motor is no longer busy. Returns false if wait exeeds maxWaits*sleepLength.
         // If motor is busy longer than the max wait time, a stop command will be sent to the zaber.
         public bool finishMove()
@@ -80,23 +92,37 @@ namespace Zaber_Track_System
             int maxWaits = 100;
             int sleepLength = 100; //milliseconds
             int count = 0;
-            while (isMotorBusy())
+
+            try
             {
-                if (count >= maxWaits)
+                while (isMotorBusy())
                 {
-                    stopMotor();
-                    return false;
+                    if (count >= maxWaits)
+                    {
+                        stopMotor();
+                        return false;
+                    }
+                    System.Threading.Thread.Sleep(sleepLength);
+                    count++;
                 }
-                System.Threading.Thread.Sleep(sleepLength);
-                count++;
+            }
+            catch
+            {
+                throw new System.ArgumentException("No response on zaber.finishMove()");
             }
             return true;
         }
+
         public bool goHome() // sends mount to home (or zero) position.
         {
             mData = sendCMD("/home");
+            if (mData == null)
+            {
+                throw new System.ArgumentException("No response on zaber.goHome()");
+            }
             return (mData.Contains("OK"));
         }
+
         public bool stopMotor() // stops the zaber motor.
         {
             mData = sendCMD("/stop");
@@ -126,8 +152,12 @@ namespace Zaber_Track_System
         public int getPos()
         {
             try
-            {
+            {                
                 mData = sendCMD("/get pos");
+                if (mData == null)
+                {
+                    throw new System.ArgumentException("No response on zaber.getPos()");
+                }
                 currentPos = Convert.ToInt32(getValue(mData));
             }
             catch
@@ -140,7 +170,12 @@ namespace Zaber_Track_System
         // Moves the zaber to a given position on the track. Track positions range from 0 (home) to about 354,371.
         public bool moveABS(int steps)
         {
+            
             mData = sendCMD("/move abs " + steps);
+            if (mData == null)
+                {
+                throw new System.ArgumentException("No response on zaber.moveABS()");
+            }
             return (mData.Contains("OK"));
         }
 
@@ -149,9 +184,14 @@ namespace Zaber_Track_System
         public bool moveRel(double millimeters, int direction)
         {
             mData = sendCMD("/move rel " + (direction * Convert.ToInt32(millimeters * stepsPerMM)));
+            if(mData == null)
+            {
+                throw new System.ArgumentException("No response on zaber.moveRel()");
+            }
             System.Console.WriteLine(mData);
             return (mData.Contains("OK"));
         }
+
         public int getMaxSpeed()
         {
             mData = sendCMD("/get maxspeed");
@@ -177,10 +217,15 @@ namespace Zaber_Track_System
         {
             mData = sendCMD("/warnings clear");
         }
+        public bool isOpen()
+        {
+            bool open = motor.IsOpen;
+            return open;
+        }
         public bool isMotorBusy()
         {
             try
-            {
+            {               
                 mData = sendCMD("/get pos");
             }
             catch
@@ -199,7 +244,7 @@ namespace Zaber_Track_System
             string ReturnValue = null;
             if (!isPortBusy())
             {
-                portBusy = true;
+//                portBusy = true; 
                 try
                 {
                     motor.DiscardInBuffer();

@@ -22,7 +22,15 @@ namespace ThicknessTest
             keyence.openKeyence();
             ZaberCTRL zaber = new ZaberCTRL();
             zaber.openZaber();
-            zaber.goHome();
+            try
+            {
+                zaber.goHome();
+            }
+            catch
+            {
+
+            }
+            
 
             try
             {
@@ -34,18 +42,32 @@ namespace ThicknessTest
             catch
             {
                 Console.WriteLine("Unknown Exception Occured");
-                zaber.goHome();
-                zaber.finishMove();
-                zaber.Close();
-                keyence.Close();
+                try
+                {
+                    zaber.goHome();
+                    zaber.finishMove();
+                    zaber.Close();
+                    keyence.Close();
+                }
+                catch
+                {
+
+                }
                 return;
             }
 
             finally {
-                zaber.goHome();
-                zaber.finishMove();
-                zaber.Close();
-                keyence.Close();
+                try
+                {
+                    zaber.goHome();
+                    zaber.finishMove();
+                    zaber.Close();
+                    keyence.Close();
+                }
+                catch
+                {
+
+                }
             }
         }
     }

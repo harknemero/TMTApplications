@@ -22,8 +22,9 @@ namespace ThicknessTest
         private Settings settings;
         private ThicknessData data;
         private Profiles profiles;
-        int currentRow;
-        double lastSample;
+        private int currentRow;
+        private double lastSample;
+        private bool abortTestRoutine;
 
         public Form1(ZaberCTRL z, KeyenceCTRL k, Settings s, ThicknessData d, Profiles p)
         {
@@ -34,6 +35,7 @@ namespace ThicknessTest
             profiles = p;
             currentRow = 0;
             lastSample = 0;
+            abortTestRoutine = false;
 
             InitializeComponent();
 
@@ -43,10 +45,23 @@ namespace ThicknessTest
                 settings = profiles.getProfile(profiles.DefaultProfile);
             }
             loadSettings();
+            if (!keyence.isOpen())
+            {
+                keyenceDisconnected();
+            }
+            if (!zaber.isOpen())
+            {
+                zaberDisconnected();
+            }
         }
 
         private void runRowThicknessTestRoutine()
         {
+//            RunTestButton.Visible = false;
+//            RunTestButton.Enabled = false;
+//            button11.Enabled = true;
+//            button11.Visible = true;
+
             try
             {
                 if (zaber.getPos() != settings.ZaberOrigin)
@@ -55,57 +70,145 @@ namespace ThicknessTest
                     zaber.moveABS(settings.ZaberOrigin);
                     zaber.finishMove();
                 }
+            }
+            catch (System.ArgumentException ex)
+            {
+                Console.WriteLine(ex.Message);
+                zaberDisconnected();
+            }
                 
-                double offset = 0; // This variable is used to keep track of offset positions in the event
-                // that Active Error Correction is activated.
-                double retestDistance = 5; // This is how far the zaber moves from position to take a new sample.
-                for (int count = 0; count < settings.NumOfIntervals; count++)
-                {                    
-                    lastSample = keyence.averageOfXSamples(settings.SampleSize, settings.TargetThickness, settings.ErrorRange);
+            double offset = 0; // This variable is used to keep track of offset positions in the event
+            // that Active Error Correction is activated.
+            double retestDistance = 5; // This is how far the zaber moves from position to take a new sample.
+            for (int count = 0; count < settings.NumOfIntervals; count++)
+            {
+                if (abortTestRoutine)
+                {
+                    count = settings.NumOfIntervals;
+                }
+                else
+                {
+                    try
+                    {
+                        lastSample = keyence.averageOfXSamples(settings.SampleSize, settings.TargetThickness, settings.ErrorRange);
+                    }
+                    catch (Exception ex)
+                    {
+                        if (ex is ArgumentException || ex is InvalidOperationException)
+                        {
+                            Console.WriteLine(ex.Message);
+                            keyenceDisconnected();
+                        }
+                        else
+                        {
+                            throw new System.ArgumentException("Unknown Exception On Keyence Call.");
+                        }
+                    }
                     // Active Error Correction Round 1
-                    if (lastSample < settings.TargetThickness - settings.ErrorRange || 
+                    if (lastSample < settings.TargetThickness - settings.ErrorRange ||
                         lastSample > settings.TargetThickness + settings.ErrorRange)
                     {
-                        zaber.moveRel(retestDistance, settings.DirFromOrigin * (-1));
-                        offset = retestDistance;
-                        zaber.finishMove();
+                        try
+                        {
+                            zaber.moveRel(retestDistance, settings.DirFromOrigin * (-1));
+                            offset = retestDistance;
+                            zaber.finishMove();
+                        }
+                        catch (System.ArgumentException ex)
+                        {
+                            Console.WriteLine(ex.Message);
+                            zaberDisconnected();
+                        }
                         System.Threading.Thread.Sleep(100);
-                        lastSample = keyence.averageOfXSamples(settings.SampleSize, settings.TargetThickness, settings.ErrorRange);
-
+                        try
+                        {
+                            lastSample = keyence.averageOfXSamples(settings.SampleSize, settings.TargetThickness, settings.ErrorRange);
+                        }
+                        catch (Exception ex)
+                        {
+                            if (ex is ArgumentException || ex is InvalidOperationException)
+                            {
+                                Console.WriteLine(ex.Message);
+                                keyenceDisconnected();
+                            }
+                            else
+                            {
+                                throw new System.ArgumentException("Unknown Exception On Keyence Call.");
+                            }
+                        }
                         // Active Error Correction Round 2
                         if (lastSample < settings.TargetThickness - settings.ErrorRange ||
                         lastSample > settings.TargetThickness + settings.ErrorRange)
                         {
-                            zaber.moveRel(retestDistance * 2, settings.DirFromOrigin);
-                            offset = retestDistance * (-1);
-                            zaber.finishMove();
+                            try
+                            {
+                                zaber.moveRel(retestDistance * 2, settings.DirFromOrigin);
+                                offset = retestDistance * (-1);
+                                zaber.finishMove();
+                            }
+                            catch (System.ArgumentException ex)
+                            {
+                                Console.WriteLine(ex.Message);
+                                zaberDisconnected();
+                            }
                             System.Threading.Thread.Sleep(100);
-                            lastSample = keyence.averageOfXSamples(settings.SampleSize, settings.TargetThickness, settings.ErrorRange);
+                            try
+                            {
+                                lastSample = keyence.averageOfXSamples(settings.SampleSize, settings.TargetThickness, settings.ErrorRange);
+                            }
+                            catch (Exception ex)
+                            {
+                                if (ex is ArgumentException || ex is InvalidOperationException)
+                                {
+                                    Console.WriteLine(ex.Message);
+                                    keyenceDisconnected();
+                                }
+                                else
+                                {
+                                    throw new System.ArgumentException("Unknown Exception On Keyence Call.");
+                                }
+                            }
                         }
                     }
 
                     data.recordData(currentRow, count, lastSample);
                     dataTextUpdate(count);
-                    if(count + 1 < settings.NumOfIntervals)
-                    { 
-                    zaber.moveRel(settings.IntervalLengthMM + offset, settings.DirFromOrigin);
-                    offset = 0; // Offset should be corrected now. Reset to 0.
-                    zaber.finishMove();
-                    System.Threading.Thread.Sleep(200);
+                    if (count + 1 < settings.NumOfIntervals)
+                    {
+                        try
+                        {
+                            zaber.moveRel(settings.IntervalLengthMM + offset, settings.DirFromOrigin);
+                            offset = 0; // Offset should be corrected now. Reset to 0.
+                            zaber.finishMove();
+                        }
+                        catch (System.ArgumentException ex)
+                        {
+                            Console.WriteLine(ex.Message);
+                            zaberDisconnected();
+                        }
+                        System.Threading.Thread.Sleep(200);
                     }
                 }
-                zaber.moveABS(settings.ZaberOrigin);
-                zaber.finishMove();
-                if(currentRow + 1 < settings.NumOfRows)
-                {
-                    currentRow++;
-                    textBox1.Text = ("" + (currentRow + 1));
-                }
             }
-            catch
+            try { 
+            zaber.moveABS(settings.ZaberOrigin);
+            zaber.finishMove();
+            }
+            catch (System.ArgumentException ex)
             {
-
+                Console.WriteLine(ex.Message);
+                zaberDisconnected();
             }
+            if (currentRow + 1 < settings.NumOfRows && !abortTestRoutine)
+            {
+                currentRow++;
+                textBox1.Text = ("" + (currentRow + 1));
+            }
+            abortTestRoutine = false;
+ //           button11.Enabled = false;
+ //           button11.Visible = false;
+ //           RunTestButton.Enabled = true;
+ //           RunTestButton.Visible = true;
         }
 
         private void loadSettings()
@@ -143,8 +246,15 @@ namespace ThicknessTest
             textBox8.Text = profiles.DefaultProfile;
             textBox9.Text = "" + settings.SampleSize;
             loadProfileMenu();
-            
+
+            try { 
             moveOrigin(); // Moves zaber to currently set origin
+            }
+            catch (System.ArgumentException ex)
+            {
+                Console.WriteLine(ex.Message);
+                zaberDisconnected();
+            }
         }
 
         // Updates Data Grid
@@ -271,6 +381,97 @@ namespace ThicknessTest
         {
             settings.ZaberOrigin = zaber.getPos();
             warningUpdate();
+        }
+
+        // Save Settings button
+        private void button6_Click(object sender, EventArgs e)
+        {
+            if (textBox8.Text == "")
+            {
+                label13.Text = "Required Field";
+            }
+            else
+            {
+                profiles.addProfile(settings, textBox8.Text);
+                profiles.DefaultProfile = textBox8.Text;
+                profiles.saveToFile();
+                loadProfileMenu();
+            }
+        }
+
+        // Default Settings button
+        private void button7_Click(object sender, EventArgs e)
+        {
+            settings = new Settings();
+            profiles.DefaultProfile = "";
+            loadSettings();
+        }
+
+        // Delete Profile Button
+        private void button8_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                String profile = textBox8.Text;
+                textBox8.Text = "";
+                label13.Text = profile + " Deleted";
+                profiles.removeProfile(profile);
+                loadProfileMenu();
+            }
+            catch
+            {
+                label13.Text = "Pofile Not Found";
+            }
+        }
+
+        // Connect Keyence Button
+        private void button9_Click(object sender, EventArgs e)
+        {
+            if (!keyence.isOpen())
+            {
+                if (keyence.openKeyence())
+                {
+                    label1.Text = "Keyence: Connected";
+                    label1.ForeColor = Color.Green;
+                    if (zaber.isOpen())
+                    {
+                        RunTestButton.Enabled = true;
+                    }
+                }
+                else
+                {
+                    label1.Text = "Keyence: Failed";
+                }
+            }
+        }
+
+        // Connect Zaber Button
+        private void button10_Click(object sender, EventArgs e)
+        {
+            if (!zaber.isOpen())
+            {
+                if (zaber.openZaber())
+                {
+                    label14.Text = "Zaber: Connected";
+                    label14.ForeColor = Color.Green;
+                    if (keyence.isOpen())
+                    {
+                        RunTestButton.Enabled = true;
+                    }
+                }
+                else
+                {
+                    label14.Text = "Zaber: Failed";
+                }
+            }
+        }
+
+        // Abort Button
+        private void button11_Click(object sender, EventArgs e)
+        {            
+            abortTestRoutine = true;
+            button11.Enabled = false;
+            button11.Visible = false;
         }
 
         // Length in Millimeters radio button
@@ -446,31 +647,7 @@ namespace ThicknessTest
                 settings.SampleSize = Convert.ToInt32(textBox9.Text);
             }
         }
-
-        // Default Settings button
-        private void button7_Click(object sender, EventArgs e)
-        {
-            settings = new Settings();
-            profiles.DefaultProfile = "";
-            loadSettings();
-        }
-
-        // Save Settings button
-        private void button6_Click(object sender, EventArgs e)
-        {
-            if(textBox8.Text == "")
-            {
-                label13.Text = "Required Field";
-            }
-            else
-            {
-                profiles.addProfile(settings, textBox8.Text);
-                profiles.DefaultProfile = textBox8.Text;
-                profiles.saveToFile();
-                loadProfileMenu();
-            }
-        }
-
+        
         // Profile Name
         private void textBox8_TextChanged(object sender, EventArgs e)
         {
@@ -497,30 +674,38 @@ namespace ThicknessTest
             }
         }
 
-        // Delete Profile Button
-        private void button8_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                String profile = textBox8.Text;
-                textBox8.Text = "";
-                label13.Text = profile + " Deleted";
-                profiles.removeProfile(profile);
-                loadProfileMenu();
-            }
-            catch
-            {
-                label13.Text = "Pofile Not Found";
-            }
-        }
-
         // Moves zaber to currently set Origin
-        public void moveOrigin()
+        private void moveOrigin()
         {
             zaber.finishMove();
             zaber.moveABS(settings.ZaberOrigin);
             zaber.finishMove();
         }
+
+        // Disables RunTestButton and sets Keyence status label
+        private void keyenceDisconnected()
+        {
+            if (!keyence.isOpen())
+            {
+                abortTestRoutine = true;
+                RunTestButton.Enabled = false;
+                label1.Text = "Keyence: Not Connected";
+                label1.ForeColor = Color.Red;
+            }
+        }
+
+        // Disables RunTestButton and sets Zaber status label
+        private void zaberDisconnected()
+        {
+            if (!zaber.isOpen())
+            {
+                abortTestRoutine = true;
+                RunTestButton.Enabled = false;
+                label14.Text = "Zaber: Not Connected";
+                label14.ForeColor = Color.Red;
+            }
+        }
+        
     }
 
     public static class RichTextBoxExtensions
