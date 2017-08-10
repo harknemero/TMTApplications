@@ -40,9 +40,9 @@ namespace ThicknessTest
             InitializeComponent();
 
             dataTextUpdate(0);
-            if(profiles.DefaultProfile != "")
+            if(profiles.getDefaultProfileName() != "")
             {
-                settings = profiles.getProfile(profiles.DefaultProfile);
+                settings = profiles.getProfile(profiles.getDefaultProfileName());
             }
             loadSettings();
             if (!keyence.isOpen())
@@ -243,7 +243,7 @@ namespace ThicknessTest
             textBox5.Text = "" + settings.TargetThickness;
             textBox6.Text = "" + settings.AcceptableRange;
             textBox7.Text = "" + settings.ErrorRange;
-            textBox8.Text = profiles.DefaultProfile;
+            textBox8.Text = profiles.getDefaultProfileName();
             textBox9.Text = "" + settings.SampleSize;
             loadProfileMenu();
 
@@ -393,7 +393,7 @@ namespace ThicknessTest
             else
             {
                 profiles.addProfile(settings, textBox8.Text);
-                profiles.DefaultProfile = textBox8.Text;
+                profiles.setDefaultProfileName(textBox8.Text);
                 profiles.saveToFile();
                 loadProfileMenu();
             }
@@ -403,7 +403,7 @@ namespace ThicknessTest
         private void button7_Click(object sender, EventArgs e)
         {
             settings = new Settings();
-            profiles.DefaultProfile = "";
+            profiles.setDefaultProfileName("");
             loadSettings();
         }
 
@@ -420,7 +420,7 @@ namespace ThicknessTest
             }
             catch
             {
-                label13.Text = "Pofile Not Found";
+                label13.Text = "Profile Not Found";
             }
         }
 
@@ -659,7 +659,7 @@ namespace ThicknessTest
         {
 
             settings = profiles.getProfile(comboBox1.Text);
-            profiles.DefaultProfile = comboBox1.Text;
+            profiles.setDefaultProfileName(comboBox1.Text);
             loadSettings();            
         }
         

@@ -507,9 +507,9 @@
             this.label2.AutoSize = true;
             this.label2.Location = new System.Drawing.Point(6, 31);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(113, 13);
+            this.label2.Size = new System.Drawing.Size(84, 13);
             this.label2.TabIndex = 0;
-            this.label2.Text = "Number of Sequences";
+            this.label2.Text = "Number of Runs";
             // 
             // radioButton2
             // 
@@ -573,9 +573,9 @@
             this.label3.AutoSize = true;
             this.label3.Location = new System.Drawing.Point(6, 57);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(118, 13);
+            this.label3.Size = new System.Drawing.Size(94, 13);
             this.label3.TabIndex = 1;
-            this.label3.Text = "Intervals Per Sequence";
+            this.label3.Text = "Intervals Per Runs";
             // 
             // thicknessDataBindingSource
             // 

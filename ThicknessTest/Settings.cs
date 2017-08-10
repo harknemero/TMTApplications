@@ -100,8 +100,25 @@ namespace Thickness_Test_Settings
         private SortedDictionary<String, Settings> profiles;
         private String fileName;
         private String defaultProfile;
-
-        public string DefaultProfile { get => defaultProfile; set => defaultProfile = value; }
+        private static String commentsAndInstructions =
+            "//, This file contains settings profiles for the ClearShield thickness test system.\n" +
+            "//, The contents of this file should not be altered except by authorized personel.\n" +
+            "//, The first line following the instructions contains the profile to be loaded on startup.\n" +
+            "//, If no startup profile is set then a blank line should follow the instructions.\n" +
+            "//, Each line following the startup profile line will contain the settings for a single profile.\n" +
+            "//, \n" +
+            "//, The settings values for each profile are listed in the following order:\n" +
+            "//, Profile Name\n" +
+            "//, Interval Length in Millimeters\n" +
+            "//, Intervals Per Run\n" +
+            "//, Number of Runs\n" +
+            "//, Zaber Origin (the start location for the test, or zero on the Y-axis)\n" +
+            "//, Direction from Origin (-1 = toward home, 1 = away from home)\n" +
+            "//, Target Thickness\n" +
+            "//, Acceptable Range\n" +
+            "//, Error Range\n" +
+            "//, Length is in Millimeters (This value must either be True or False)\n" +
+            "//, Number of Samples (The keyence will return an average of this many thickness samples)\n"; 
 
         public Profiles()
         {
@@ -118,13 +135,23 @@ namespace Thickness_Test_Settings
             {
                 saveToFile();
             }
-            reader = new StreamReader(fileName);
-            defaultProfile = reader.ReadLine();
+            reader = new StreamReader(fileName);            
             String line = reader.ReadLine();
+            // Ignore comments and instructions in settings file.
+            if (line != null && line != "")
+            {
+                while (line.Split(',')[0] == "//")
+                {
+                    line = reader.ReadLine();
+                }
+            }
+            defaultProfile = line;
+            line = reader.ReadLine();
+            // Read and parse each line into the profiles object.
             while (line != null && line != "")
             {
                 string[] values = line.Split(',');
-                if (values.Length > 2)
+                if (values.Length > 8 && values[0] != "//")
                 {
                     Settings settings = new Settings(values);
                     String key = values[0];
@@ -146,13 +173,22 @@ namespace Thickness_Test_Settings
         {
             StreamWriter writer = new StreamWriter(fileName);
             StringBuilder sb = new StringBuilder();
+            sb.Append(commentsAndInstructions);
             sb.Append(defaultProfile + "\n");
             foreach (KeyValuePair<String, Settings> profile in profiles)
             {
                 sb.Append(profile.Key + ",");
                 sb.Append(profile.Value.toString() + "\n");
             }
-            writer.WriteLine(sb.ToString());
+            // If this isn't written line by line, then the '\n' characters are present but invisible in the txt file.
+            // The functionality is unaffected, but the readability is not acceptable.
+            string[] lines = sb.ToString().Split('\n');
+            foreach(string line in lines)
+            {
+                writer.WriteLine(line);
+            }
+            
+//            writer.Write(sb.ToString());
             writer.Close();
         }
 
@@ -166,6 +202,7 @@ namespace Thickness_Test_Settings
             {
                 profiles[key] = settings;
             }
+            saveToFile();
         }
 
         public Settings getProfile(String key)
@@ -188,7 +225,24 @@ namespace Thickness_Test_Settings
 
         public void removeProfile(String key)
         {
-            profiles.Remove(key);
+            bool deleted = profiles.Remove(key);
+            if (!deleted)
+            {
+                throw new System.ArgumentException("Profile Not Deleted");
+            }
+            setDefaultProfileName("");
+            saveToFile();
+        }
+
+        public string getDefaultProfileName()
+        {
+            return defaultProfile;
+        }
+
+        public void setDefaultProfileName(String name)
+        {
+            defaultProfile = name;
+            saveToFile();
         }
     }
     
