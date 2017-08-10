@@ -28,9 +28,9 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.button11 = new System.Windows.Forms.Button();
             this.button10 = new System.Windows.Forms.Button();
             this.button9 = new System.Windows.Forms.Button();
             this.label14 = new System.Windows.Forms.Label();
@@ -45,6 +45,10 @@
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.label12 = new System.Windows.Forms.Label();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
+            this.button12 = new System.Windows.Forms.Button();
+            this.textBox10 = new System.Windows.Forms.TextBox();
+            this.label15 = new System.Windows.Forms.Label();
+            this.checkBox1 = new System.Windows.Forms.CheckBox();
             this.button8 = new System.Windows.Forms.Button();
             this.label13 = new System.Windows.Forms.Label();
             this.button7 = new System.Windows.Forms.Button();
@@ -76,8 +80,7 @@
             this.label4 = new System.Windows.Forms.Label();
             this.textBox4 = new System.Windows.Forms.TextBox();
             this.label3 = new System.Windows.Forms.Label();
-            this.thicknessDataBindingSource = new System.Windows.Forms.BindingSource(this.components);
-            this.button11 = new System.Windows.Forms.Button();
+            this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -85,7 +88,6 @@
             this.groupBox2.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.panel2.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.thicknessDataBindingSource)).BeginInit();
             this.SuspendLayout();
             // 
             // tabControl1
@@ -119,6 +121,17 @@
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Test";
             this.tabPage1.UseVisualStyleBackColor = true;
+            // 
+            // button11
+            // 
+            this.button11.Location = new System.Drawing.Point(6, 6);
+            this.button11.Name = "button11";
+            this.button11.Size = new System.Drawing.Size(95, 24);
+            this.button11.TabIndex = 13;
+            this.button11.Text = "Abort";
+            this.button11.UseVisualStyleBackColor = true;
+            this.button11.Visible = false;
+            this.button11.Click += new System.EventHandler(this.button11_Click);
             // 
             // button10
             // 
@@ -256,6 +269,10 @@
             // 
             // groupBox3
             // 
+            this.groupBox3.Controls.Add(this.button12);
+            this.groupBox3.Controls.Add(this.textBox10);
+            this.groupBox3.Controls.Add(this.label15);
+            this.groupBox3.Controls.Add(this.checkBox1);
             this.groupBox3.Controls.Add(this.button8);
             this.groupBox3.Controls.Add(this.label13);
             this.groupBox3.Controls.Add(this.button7);
@@ -266,10 +283,49 @@
             this.groupBox3.Controls.Add(this.comboBox1);
             this.groupBox3.Location = new System.Drawing.Point(474, 6);
             this.groupBox3.Name = "groupBox3";
-            this.groupBox3.Size = new System.Drawing.Size(281, 170);
+            this.groupBox3.Size = new System.Drawing.Size(281, 205);
             this.groupBox3.TabIndex = 10;
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "Profile Options";
+            // 
+            // button12
+            // 
+            this.button12.Location = new System.Drawing.Point(9, 175);
+            this.button12.Name = "button12";
+            this.button12.Size = new System.Drawing.Size(75, 23);
+            this.button12.TabIndex = 11;
+            this.button12.Text = "Browse";
+            this.button12.UseVisualStyleBackColor = true;
+            this.button12.Click += new System.EventHandler(this.button12_Click);
+            // 
+            // textBox10
+            // 
+            this.textBox10.Location = new System.Drawing.Point(91, 177);
+            this.textBox10.Name = "textBox10";
+            this.textBox10.Size = new System.Drawing.Size(184, 20);
+            this.textBox10.TabIndex = 10;
+            this.textBox10.KeyDown += new System.Windows.Forms.KeyEventHandler(this.textBox10_KeyDown);
+            // 
+            // label15
+            // 
+            this.label15.AutoSize = true;
+            this.label15.Location = new System.Drawing.Point(115, 161);
+            this.label15.Name = "label15";
+            this.label15.Size = new System.Drawing.Size(135, 13);
+            this.label15.TabIndex = 9;
+            this.label15.Text = "Controlled Profiles File Path";
+            // 
+            // checkBox1
+            // 
+            this.checkBox1.AutoSize = true;
+            this.checkBox1.Location = new System.Drawing.Point(6, 138);
+            this.checkBox1.Name = "checkBox1";
+            this.checkBox1.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
+            this.checkBox1.Size = new System.Drawing.Size(168, 17);
+            this.checkBox1.TabIndex = 8;
+            this.checkBox1.Text = "Use Controlled Profile Settings";
+            this.checkBox1.UseVisualStyleBackColor = true;
+            this.checkBox1.CheckedChanged += new System.EventHandler(this.checkBox1_CheckedChanged);
             // 
             // button8
             // 
@@ -577,20 +633,9 @@
             this.label3.TabIndex = 1;
             this.label3.Text = "Intervals Per Runs";
             // 
-            // thicknessDataBindingSource
+            // openFileDialog1
             // 
-            this.thicknessDataBindingSource.DataSource = typeof(Thickness_Data.ThicknessData);
-            // 
-            // button11
-            // 
-            this.button11.Location = new System.Drawing.Point(6, 6);
-            this.button11.Name = "button11";
-            this.button11.Size = new System.Drawing.Size(95, 24);
-            this.button11.TabIndex = 13;
-            this.button11.Text = "Abort";
-            this.button11.UseVisualStyleBackColor = true;
-            this.button11.Visible = false;
-            this.button11.Click += new System.EventHandler(this.button11_Click);
+            this.openFileDialog1.FileName = "openFileDialog1";
             // 
             // Form1
             // 
@@ -600,7 +645,6 @@
             this.Controls.Add(this.tabControl1);
             this.Name = "Form1";
             this.Text = "ClearShield Thickness Test";
-            this.Load += new System.EventHandler(this.Form1_Load);
             this.tabControl1.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
             this.tabPage1.PerformLayout();
@@ -614,7 +658,6 @@
             this.groupBox1.PerformLayout();
             this.panel2.ResumeLayout(false);
             this.panel2.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.thicknessDataBindingSource)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -628,7 +671,6 @@
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.TextBox textBox1;
         private System.Windows.Forms.Button button2;
-        private System.Windows.Forms.BindingSource thicknessDataBindingSource;
         private System.Windows.Forms.RichTextBox richTextBox1;
         private System.Windows.Forms.Button button3;
         private System.Windows.Forms.Button button4;
@@ -670,6 +712,11 @@
         private System.Windows.Forms.Label label14;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Button button11;
+        private System.Windows.Forms.CheckBox checkBox1;
+        private System.Windows.Forms.Button button12;
+        private System.Windows.Forms.TextBox textBox10;
+        private System.Windows.Forms.Label label15;
+        private System.Windows.Forms.OpenFileDialog openFileDialog1;
     }
 }
 

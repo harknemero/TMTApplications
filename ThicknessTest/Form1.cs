@@ -55,6 +55,7 @@ namespace ThicknessTest
             }
         }
 
+        // Runs Keyence and Zaber through thickness test routine, and stores their data feedback.
         private void runRowThicknessTestRoutine()
         {
 //            RunTestButton.Visible = false;
@@ -211,6 +212,7 @@ namespace ThicknessTest
  //           RunTestButton.Visible = true;
         }
 
+        // Updates and populates all controls in the settings tab.
         private void loadSettings()
         {
             // Millimeters/Inches Radio buttons alter text box data upon changing, so set them first.
@@ -245,6 +247,7 @@ namespace ThicknessTest
             textBox7.Text = "" + settings.ErrorRange;
             textBox8.Text = profiles.getDefaultProfileName();
             textBox9.Text = "" + settings.SampleSize;
+            textBox10.Text = profiles.getControlledProfilesFilePath();
             loadProfileMenu();
 
             try { 
@@ -255,6 +258,15 @@ namespace ThicknessTest
                 Console.WriteLine(ex.Message);
                 zaberDisconnected();
             }
+            if (profiles.isControlled())
+            {
+                checkBox1.Checked = true;
+            }
+            else
+            {
+                checkBox1.Checked = false;
+            }
+            updateSettingsControlsEnabledStatus();
         }
 
         // Updates Data Grid
@@ -316,13 +328,8 @@ namespace ThicknessTest
                 }
             }
         }
-
-        private void Form1_Load(object sender, EventArgs e)
-        {
-
-        }
         
-        // Runs test sequence according to current settings.
+        // This is a Button. Runs test sequence according to current settings.
         private void TestRowButton_Click(object sender, EventArgs e)
         {
             Console.WriteLine("TestRowButton Pushed.");
@@ -386,16 +393,18 @@ namespace ThicknessTest
         // Save Settings button
         private void button6_Click(object sender, EventArgs e)
         {
-            if (textBox8.Text == "")
+            if (!profiles.isControlled())
             {
-                label13.Text = "Required Field";
-            }
-            else
-            {
-                profiles.addProfile(settings, textBox8.Text);
-                profiles.setDefaultProfileName(textBox8.Text);
-                profiles.saveToFile();
-                loadProfileMenu();
+                if (textBox8.Text == "")
+                {
+                    label13.Text = "Required Field";
+                }
+                else
+                {
+                    profiles.addProfile(settings, textBox8.Text);
+                    profiles.setDefaultProfileName(textBox8.Text);
+                    loadProfileMenu();
+                }
             }
         }
 
@@ -474,6 +483,25 @@ namespace ThicknessTest
             button11.Visible = false;
         }
 
+        // Browse Button
+        private void button12_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog openFileDialog1 = new OpenFileDialog();
+
+            openFileDialog1.Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
+            openFileDialog1.AddExtension = true;
+            openFileDialog1.DefaultExt = ".txt";
+            openFileDialog1.FilterIndex = 2;
+            openFileDialog1.RestoreDirectory = true;
+
+            if (openFileDialog1.ShowDialog() == DialogResult.OK)
+            {
+                textBox10.Text = openFileDialog1.FileName;
+                textBox10.Focus();
+                SendKeys.Send("{ENTER}"); // This can create issues during debugging.
+            }
+        }
+
         // Length in Millimeters radio button
         private void radioButton1_CheckedChanged(object sender, EventArgs e)
         {
@@ -529,129 +557,225 @@ namespace ThicknessTest
         // Set sequence number to be tested on TestRowButton_Click
         private void textBox1_TextChanged(object sender, EventArgs e)
         {
-            if (textBox1.Text != "")
+            try
             {
-                if (Convert.ToInt32(textBox1.Text) < 1 || Convert.ToInt32(textBox1.Text) > settings.NumOfRows)
+                if (textBox1.Text != "")
                 {
-                    currentRow = 0;
-                    textBox1.Text = (1 + "");
+                    if (Convert.ToInt32(textBox1.Text) < 1 || Convert.ToInt32(textBox1.Text) > settings.NumOfRows)
+                    {
+                        currentRow = 0;
+                        textBox1.Text = (1 + "");
+                    }
+                    else
+                    {
+                        currentRow = Convert.ToInt32(textBox1.Text) - 1;
+                    }
+                    textBox1.Update();
                 }
-                else
-                {
-                    currentRow = Convert.ToInt32(textBox1.Text) - 1;
-                }
-                textBox1.Update();
             }
+            catch
+            {
+                textBox1.Text = (1 + "");
+            }
+            moveCursorToEndOfText(textBox1);
         }
 
         // Number of Sequences
         private void textBox2_TextChanged(object sender, EventArgs e)
         {
-            if (textBox2.Text != "")
+            try
             {
-                if (Convert.ToInt32(textBox2.Text) >= 1 && Convert.ToInt32(textBox2.Text) < settings.MaxNumOfRows)
+                if (textBox2.Text != "")
                 {
-                    settings.NumOfRows = Convert.ToInt32(textBox2.Text);
-                    data = new ThicknessData(settings.NumOfRows, settings.NumOfIntervals);
-                    dataTextUpdate(0);
-                    textBox1.Text = "1";
-                }
-                else
-                {
-                    textBox2.Text = ("" + settings.NumOfRows);
+                    if (Convert.ToInt32(textBox2.Text) >= 1 && Convert.ToInt32(textBox2.Text) < settings.MaxNumOfRows)
+                    {
+                        settings.NumOfRows = Convert.ToInt32(textBox2.Text);
+                        data = new ThicknessData(settings.NumOfRows, settings.NumOfIntervals);
+                        dataTextUpdate(0);
+                        textBox1.Text = "1";
+                    }
+                    else
+                    {
+                        textBox2.Text = ("" + settings.NumOfRows);
+                    }
                 }
             }
+            catch
+            {
+                textBox2.Text = ("" + settings.NumOfRows);
+            }
             Update();
+            moveCursorToEndOfText(textBox2);
         }
 
         // Number of Intervals
         private void textBox3_TextChanged(object sender, EventArgs e)
         {
-            if(textBox3.Text != "")
-            {
-                if (Convert.ToInt32(textBox3.Text) >= 1)
+            try { 
+                if(textBox3.Text != "")
                 {
-                    settings.NumOfIntervals = Convert.ToInt32(textBox3.Text);
-                    data = new ThicknessData(settings.NumOfRows, settings.NumOfIntervals);
-                    dataTextUpdate(0);
-                    textBox1.Text = "1";
-                    warningUpdate(); // Possible tracklength warning
-                }
-                else
-                {
-                    textBox3.Text = ("" + settings.NumOfIntervals);
+                    if (Convert.ToInt32(textBox3.Text) >= 1)
+                    {
+                        settings.NumOfIntervals = Convert.ToInt32(textBox3.Text);
+                        data = new ThicknessData(settings.NumOfRows, settings.NumOfIntervals);
+                        dataTextUpdate(0);
+                        textBox1.Text = "1";
+                        warningUpdate(); // Possible tracklength warning
+                    }
+                    else
+                    {
+                        textBox3.Text = ("" + settings.NumOfIntervals);
+                    }
                 }
             }
+            catch
+            {
+                textBox3.Text = ("" + settings.NumOfIntervals);
+            }
             Update();
+            moveCursorToEndOfText(textBox3);
         }
 
         // Length of Intervals in Millimeters
         private void textBox4_TextChanged(object sender, EventArgs e)
         {
-            if (textBox4.Text != "" && textBox4.Text != ".")
+            try
             {
-                if (Convert.ToDouble(textBox4.Text) >= 0)
+                if (textBox4.Text != "" && textBox4.Text != ".")
                 {
-                    Double lengthMM;
-                    if (radioButton1.Checked)
+                    if (Convert.ToDouble(textBox4.Text) >= 0)
                     {
-                        lengthMM = Convert.ToDouble(textBox4.Text);
+                        Double lengthMM;
+                        if (radioButton1.Checked)
+                        {
+                            lengthMM = Convert.ToDouble(textBox4.Text);
+                        }
+                        else
+                        {
+                            lengthMM = zaber.getMMperInch() * Convert.ToDouble(textBox4.Text);
+                        }
+                        settings.IntervalLengthMM = lengthMM;
+                        warningUpdate(); // Possible tracklength warning.
                     }
                     else
                     {
-                        lengthMM = zaber.getMMperInch()*Convert.ToDouble(textBox4.Text);
+                        textBox4.Text = ("" + settings.IntervalLengthMM);
                     }
-                    settings.IntervalLengthMM = lengthMM;
-                    warningUpdate(); // Possible tracklength warning.
-                }
-                else
-                {
-                    textBox4.Text = ("" + settings.IntervalLengthMM);
                 }
             }
+            catch
+            {
+                textBox4.Text = ("" + settings.IntervalLengthMM);
+            }
             Update();
+            moveCursorToEndOfText(textBox4);
         }
         
         // Set Target Thickness
         private void textBox5_TextChanged(object sender, EventArgs e)
         {
-            if(textBox5.Text != "")
+            try
             {
-                settings.TargetThickness = Convert.ToDouble(textBox5.Text);
+                if (textBox5.Text != "")
+                {
+                    settings.TargetThickness = Convert.ToDouble(textBox5.Text);
+                }
             }
+            catch
+            {
+                if (textBox5.Text == ".")
+                {
+                    textBox5.Text = "0.";
+                }
+                else
+                {
+                    textBox5.Text = ("" + settings.TargetThickness);
+                }
+            }
+            moveCursorToEndOfText(textBox5);
         }
 
         // Set Acceptable Range
         private void textBox6_TextChanged(object sender, EventArgs e)
         {
-            if (textBox6.Text != "")
+            try
             {
-                settings.AcceptableRange = Convert.ToDouble(textBox6.Text);
+                if (textBox6.Text != "")
+                {
+                    settings.AcceptableRange = Convert.ToDouble(textBox6.Text);
+                }
             }
+            catch
+            {
+                if (textBox6.Text == ".")
+                {
+                    textBox6.Text = "0.";
+                }
+                else
+                {
+                    textBox6.Text = ("" + settings.AcceptableRange);
+                }
+            }
+            moveCursorToEndOfText(textBox6);
         }
 
         // Set Error Range
         private void textBox7_TextChanged(object sender, EventArgs e)
         {
-            if (textBox7.Text != "")
+            try
             {
-                settings.ErrorRange = Convert.ToDouble(textBox7.Text);
+                if (textBox7.Text != "")
+                {
+                    settings.ErrorRange = Convert.ToDouble(textBox7.Text);
+                }
             }
-        }
-
-        // Set Keyence Sample Size
-        private void textBox9_TextChanged(object sender, EventArgs e)
-        {
-            if (textBox9.Text != "")
+            catch
             {
-                settings.SampleSize = Convert.ToInt32(textBox9.Text);
+                if (textBox7.Text == ".")
+                {
+                    textBox7.Text = "0.";
+                }
+                else
+                {
+                    textBox7.Text = ("" + settings.ErrorRange);
+                }
             }
+            moveCursorToEndOfText(textBox7);
         }
         
         // Profile Name
         private void textBox8_TextChanged(object sender, EventArgs e)
         {
             label13.Text = "";
+            moveCursorToEndOfText(textBox8);
+        }
+
+        // Set Keyence Sample Size
+        private void textBox9_TextChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                if (textBox9.Text != "")
+                {
+                    settings.SampleSize = Convert.ToInt32(textBox9.Text);
+                }
+            }
+            catch
+            {                
+                textBox9.Text = ("" + settings.SampleSize);                
+            }
+
+            moveCursorToEndOfText(textBox9);
+        }
+
+        // Controlled Profiles Settings File Path
+        private void textBox10_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                e.Handled = true;
+                profiles.setControlledProfilesFilePath(textBox10.Text);
+            }
         }
 
         // Profile Selection Dropdown Menu
@@ -662,7 +786,102 @@ namespace ThicknessTest
             profiles.setDefaultProfileName(comboBox1.Text);
             loadSettings();            
         }
-        
+
+        // Use Controlled Profile Settings Checkbox
+        private void checkBox1_CheckedChanged(object sender, EventArgs e)
+        {
+            if (checkBox1.Checked)
+            {
+                if (!profiles.isControlled())
+                {
+                    try
+                    {
+                        profiles.setControlled(true);
+                    }
+                    catch
+                    {
+                        button12.PerformClick();
+                    }
+                }
+            }
+            else
+            {
+                if (profiles.isControlled())
+                {
+                    try
+                    {
+                        profiles.setControlled(false);
+                    }
+                    catch
+                    {
+                        button12.PerformClick();
+                    }
+                }            
+            }
+            loadSettings();
+        }
+
+        // Updates Enabled/Disabled Status of Settings Tab Controls
+        private void updateSettingsControlsEnabledStatus()
+        {
+            if (profiles.isControlled())
+            {
+                this.Text = "ClearShield Thickness Test - Controlled";
+                // Enable all controlled profile options.
+                {
+                    textBox10.Enabled = true;
+                    button12.Enabled = true;
+                }
+                // Disable and make read only all settings options
+                {
+                    button5.Enabled = false;
+                    button6.Enabled = false;
+                    button7.Enabled = false;
+                    button8.Enabled = false;
+                    textBox2.Enabled = false;
+                    textBox3.Enabled = false;
+                    textBox4.Enabled = false;
+                    textBox5.Enabled = false;
+                    textBox6.Enabled = false;
+                    textBox7.Enabled = false;
+                    textBox8.Enabled = false;
+                    textBox9.Enabled = false;
+                    radioButton1.Enabled = false;
+                    radioButton2.Enabled = false;
+                    radioButton3.Enabled = false;
+                    radioButton4.Enabled = false;
+                }
+            }
+            else 
+            {
+                this.Text = "ClearShield Thickness Test - Uncontrolled";
+                // Disable all controlled profile options.
+                {
+                    textBox10.Enabled = false;
+                    button12.Enabled = false;
+                }
+                // Enable and make read only all settings options
+                {
+                    button5.Enabled = true;
+                    button6.Enabled = true;
+                    button7.Enabled = true;
+                    button8.Enabled = true;
+                    textBox2.Enabled = true;
+                    textBox3.Enabled = true;
+                    textBox4.Enabled = true;
+                    textBox5.Enabled = true;
+                    textBox6.Enabled = true;
+                    textBox7.Enabled = true;
+                    textBox8.Enabled = true;
+                    textBox9.Enabled = true;
+                    radioButton1.Enabled = true;
+                    radioButton2.Enabled = true;
+                    radioButton3.Enabled = true;
+                    radioButton4.Enabled = true;
+                }
+            }  
+        }
+
         // Populates drowdown list on comboBox1
         private void loadProfileMenu()
         {
@@ -705,7 +924,16 @@ namespace ThicknessTest
                 label14.ForeColor = Color.Red;
             }
         }
-        
+
+        // Moves Cursor to the end of the text in any text box.
+        private void moveCursorToEndOfText(TextBox tbox)
+        {
+            if (tbox.Text != "")
+            {
+                tbox.SelectionStart = tbox.Text.Length;
+                tbox.SelectionLength = 0;
+            }
+        }
     }
 
     public static class RichTextBoxExtensions

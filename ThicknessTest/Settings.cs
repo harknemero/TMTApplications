@@ -98,9 +98,12 @@ namespace Thickness_Test_Settings
     public class Profiles
     {
         private SortedDictionary<String, Settings> profiles;
-        private String fileName;
-        private String defaultProfile;
-        private static String commentsAndInstructions =
+        private string controlledProfilesFilePath;        
+        private string defaultProfile;
+        private bool controlled;
+        private static string internalSettingsFileName = "Internal_Settings.txt";
+        private static string internalProfilesFilePath = "Thickness_Test_System_610_00051_Settings.txt";
+        private static string commentsAndInstructions =
             "//, This file contains settings profiles for the ClearShield thickness test system.\n" +
             "//, The contents of this file should not be altered except by authorized personel.\n" +
             "//, The first line following the instructions contains the profile to be loaded on startup.\n" +
@@ -118,24 +121,85 @@ namespace Thickness_Test_Settings
             "//, Acceptable Range\n" +
             "//, Error Range\n" +
             "//, Length is in Millimeters (This value must either be True or False)\n" +
-            "//, Number of Samples (The keyence will return an average of this many thickness samples)\n"; 
+            "//, Number of Samples (The keyence will return an average of this many thickness samples)\n" +
+            "//, \n" +
+            "//, Each value must be separated by a comma.\n"; 
 
         public Profiles()
         {
-            fileName = "Settings_Profiles.txt";
+            controlledProfilesFilePath = "";
+            controlled = false;
             profiles = new SortedDictionary<String, Settings>();
             defaultProfile = "";
 
-            StreamReader reader;
+            loadInternalSettings();
             try
             {
-                reader = new StreamReader(fileName);
+                loadProfiles();
             }
             catch
             {
-                saveToFile();
+
             }
-            reader = new StreamReader(fileName);            
+        }
+
+        public void loadInternalSettings()
+        {
+            string line;
+            StreamReader reader;
+            try
+            {
+                reader = new StreamReader(internalSettingsFileName);
+            }
+            catch
+            {
+                saveInternalSettings();
+                return;
+            }
+            line = reader.ReadLine();
+            controlled = Convert.ToBoolean(line);
+            line = reader.ReadLine();
+            controlledProfilesFilePath = line;
+            reader.Close();
+        }
+
+        public void saveInternalSettings()
+        {
+            StreamWriter writer = new StreamWriter(internalSettingsFileName);
+            writer.WriteLine(controlled);
+            writer.WriteLine(controlledProfilesFilePath);
+
+            writer.Close();
+        }
+
+        public void loadProfiles()
+        {
+            string filePath;
+            if (controlled)
+            {
+                filePath = controlledProfilesFilePath;
+            }
+            else
+            {
+                filePath = internalProfilesFilePath;
+            }
+            StreamReader reader;
+            try
+            {
+                reader = new StreamReader(filePath);
+            }
+            catch
+            {
+                if (filePath != "" && filePath != null)
+                {
+                    saveProfiles();
+                }
+                else
+                {
+                    throw new System.ArgumentException("FilePath is Empty String or Null.");
+                }
+            }
+            reader = new StreamReader(filePath);
             String line = reader.ReadLine();
             // Ignore comments and instructions in settings file.
             if (line != null && line != "")
@@ -148,6 +212,8 @@ namespace Thickness_Test_Settings
             defaultProfile = line;
             line = reader.ReadLine();
             // Read and parse each line into the profiles object.
+            profiles.Clear();
+            profiles = new SortedDictionary<String, Settings>();
             while (line != null && line != "")
             {
                 string[] values = line.Split(',');
@@ -169,27 +235,29 @@ namespace Thickness_Test_Settings
             reader.Close();
         }
 
-        public void saveToFile()
+        public void saveProfiles()
         {
-            StreamWriter writer = new StreamWriter(fileName);
-            StringBuilder sb = new StringBuilder();
-            sb.Append(commentsAndInstructions);
-            sb.Append(defaultProfile + "\n");
-            foreach (KeyValuePair<String, Settings> profile in profiles)
+            if (!controlled)
             {
-                sb.Append(profile.Key + ",");
-                sb.Append(profile.Value.toString() + "\n");
+                StreamWriter writer = new StreamWriter(internalProfilesFilePath);
+                StringBuilder sb = new StringBuilder();
+                sb.Append(commentsAndInstructions);
+                sb.Append(defaultProfile + "\n");
+                foreach (KeyValuePair<String, Settings> profile in profiles)
+                {
+                    sb.Append(profile.Key + ",");
+                    sb.Append(profile.Value.toString() + "\n");
+                }
+                // If this isn't written line by line, then the '\n' characters are present but invisible in the txt file.
+                // The functionality is unaffected, but the readability is not acceptable.
+                string[] lines = sb.ToString().Split('\n');
+                foreach (string line in lines)
+                {
+                    writer.WriteLine(line);
+                }
+
+                writer.Close();
             }
-            // If this isn't written line by line, then the '\n' characters are present but invisible in the txt file.
-            // The functionality is unaffected, but the readability is not acceptable.
-            string[] lines = sb.ToString().Split('\n');
-            foreach(string line in lines)
-            {
-                writer.WriteLine(line);
-            }
-            
-//            writer.Write(sb.ToString());
-            writer.Close();
         }
 
         public void addProfile(Settings settings, String key)
@@ -202,7 +270,7 @@ namespace Thickness_Test_Settings
             {
                 profiles[key] = settings;
             }
-            saveToFile();
+            saveProfiles();
         }
 
         public Settings getProfile(String key)
@@ -231,7 +299,38 @@ namespace Thickness_Test_Settings
                 throw new System.ArgumentException("Profile Not Deleted");
             }
             setDefaultProfileName("");
-            saveToFile();
+            saveProfiles();
+        }
+
+        public bool isControlled()
+        {
+            return controlled;
+        }
+
+        public void setControlled(bool isControlled)
+        {
+            controlled = isControlled;
+            saveInternalSettings();
+            try
+            {
+                loadProfiles();
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+        }
+
+        public string getControlledProfilesFilePath()
+        {
+            return controlledProfilesFilePath;
+        }
+
+        public void setControlledProfilesFilePath(string path)
+        {
+            controlledProfilesFilePath = path;
+            saveInternalSettings();
+            loadProfiles();
         }
 
         public string getDefaultProfileName()
@@ -242,7 +341,7 @@ namespace Thickness_Test_Settings
         public void setDefaultProfileName(String name)
         {
             defaultProfile = name;
-            saveToFile();
+            saveProfiles();
         }
     }
     
