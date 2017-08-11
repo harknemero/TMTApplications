@@ -156,7 +156,7 @@ namespace Keyence_Laser
                 Console.Write("\nGood values: " + goodValues.Count + ",   Bad values: " + badValues.Count);
                 double sum = 0;
                 int entries = 0;
-                if (goodValues.Count >= badValues.Count)
+                if (goodValues.Count >= badValues.Count / 2)
                 {
                     entries = goodValues.Count;
                     foreach (double entry in goodValues)

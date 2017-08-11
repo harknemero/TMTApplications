@@ -25,6 +25,7 @@ namespace ThicknessTest
         private int currentRow;
         private double lastSample;
         private bool abortTestRoutine;
+        private static int waitTimeToStabilize = 200;
 
         public Form1(ZaberCTRL z, KeyenceCTRL k, Settings s, ThicknessData d, Profiles p)
         {
@@ -120,7 +121,7 @@ namespace ThicknessTest
                             Console.WriteLine(ex.Message);
                             zaberDisconnected();
                         }
-                        System.Threading.Thread.Sleep(100);
+                        System.Threading.Thread.Sleep(waitTimeToStabilize);
                         try
                         {
                             lastSample = keyence.averageOfXSamples(settings.SampleSize, settings.TargetThickness, settings.ErrorRange);
@@ -152,7 +153,7 @@ namespace ThicknessTest
                                 Console.WriteLine(ex.Message);
                                 zaberDisconnected();
                             }
-                            System.Threading.Thread.Sleep(100);
+                            System.Threading.Thread.Sleep(waitTimeToStabilize);
                             try
                             {
                                 lastSample = keyence.averageOfXSamples(settings.SampleSize, settings.TargetThickness, settings.ErrorRange);
