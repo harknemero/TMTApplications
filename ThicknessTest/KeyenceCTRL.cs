@@ -167,7 +167,7 @@ namespace Keyence_Laser
                 else
                 {
                     entries = badValues.Count;
-                    foreach (double entry in goodValues)
+                    foreach (double entry in badValues)
                     {
                         sum += entry;
                     }
@@ -192,7 +192,7 @@ namespace Keyence_Laser
             {
                 if(kData[0] != "ER")
                 {
-                    if (kData[1] == "-FFFFFFF" || kData[1] == "-FFFFFF")
+                    if (kData[1] == "-FFFFFFF")
                     {
                         thickness = 0;
                     }

@@ -37,7 +37,7 @@ namespace ThicknessTest
             currentRow = 0;
             lastSample = 0;
             abortTestRoutine = false;
-
+            
             InitializeComponent();
 
             dataTextUpdate(0);
@@ -58,12 +58,7 @@ namespace ThicknessTest
 
         // Runs Keyence and Zaber through thickness test routine, and stores their data feedback.
         private void runRowThicknessTestRoutine()
-        {
-//            RunTestButton.Visible = false;
-//            RunTestButton.Enabled = false;
-//            button11.Enabled = true;
-//            button11.Visible = true;
-
+        {            
             try
             {
                 if (zaber.getPos() != settings.ZaberOrigin)
@@ -78,10 +73,11 @@ namespace ThicknessTest
                 Console.WriteLine(ex.Message);
                 zaberDisconnected();
             }
-                
+
+            double tempSample = 0; // used to store Error Correction samples so lastSample retains original sample if all three samples are bad.
             double offset = 0; // This variable is used to keep track of offset positions in the event
             // that Active Error Correction is activated.
-            double retestDistance = 5; // This is how far the zaber moves from position to take a new sample.
+            double retestDistance = 5; // This is how far (millimeters) the zaber moves from position to take a new sample.
             for (int count = 0; count < settings.NumOfIntervals; count++)
             {
                 if (abortTestRoutine)
@@ -124,7 +120,7 @@ namespace ThicknessTest
                         System.Threading.Thread.Sleep(waitTimeToStabilize);
                         try
                         {
-                            lastSample = keyence.averageOfXSamples(settings.SampleSize, settings.TargetThickness, settings.ErrorRange);
+                            tempSample = keyence.averageOfXSamples(settings.SampleSize, settings.TargetThickness, settings.ErrorRange);
                         }
                         catch (Exception ex)
                         {
@@ -139,8 +135,8 @@ namespace ThicknessTest
                             }
                         }
                         // Active Error Correction Round 2
-                        if (lastSample < settings.TargetThickness - settings.ErrorRange ||
-                        lastSample > settings.TargetThickness + settings.ErrorRange)
+                        if (tempSample < settings.TargetThickness - settings.ErrorRange ||
+                        tempSample > settings.TargetThickness + settings.ErrorRange)
                         {
                             try
                             {
@@ -156,7 +152,7 @@ namespace ThicknessTest
                             System.Threading.Thread.Sleep(waitTimeToStabilize);
                             try
                             {
-                                lastSample = keyence.averageOfXSamples(settings.SampleSize, settings.TargetThickness, settings.ErrorRange);
+                                tempSample = keyence.averageOfXSamples(settings.SampleSize, settings.TargetThickness, settings.ErrorRange);
                             }
                             catch (Exception ex)
                             {
@@ -171,8 +167,12 @@ namespace ThicknessTest
                                 }
                             }
                         }
+                        if (tempSample < settings.TargetThickness - settings.ErrorRange ||
+                        tempSample > settings.TargetThickness + settings.ErrorRange)
+                        {
+                            lastSample = tempSample;
+                        }
                     }
-
                     data.recordData(currentRow, count, lastSample);
                     dataTextUpdate(count);
                     if (count + 1 < settings.NumOfIntervals)
@@ -205,12 +205,7 @@ namespace ThicknessTest
             {
                 currentRow++;
                 textBox1.Text = ("" + (currentRow + 1));
-            }
-            abortTestRoutine = false;
- //           button11.Enabled = false;
- //           button11.Visible = false;
- //           RunTestButton.Enabled = true;
- //           RunTestButton.Visible = true;
+            }            
         }
 
         // Updates and populates all controls in the settings tab.
@@ -333,8 +328,16 @@ namespace ThicknessTest
         // This is a Button. Runs test sequence according to current settings.
         private void TestRowButton_Click(object sender, EventArgs e)
         {
-            Console.WriteLine("TestRowButton Pushed.");
-            runRowThicknessTestRoutine();
+            RunTestButton.Visible = false;
+            RunTestButton.Enabled = false;
+            button11.Enabled = true;
+            button11.Visible = true;
+
+            BackgroundWorker backgroundWorker = new BackgroundWorker();
+            backgroundWorker.DoWork += new DoWorkEventHandler(backgroundWorker_doWork);
+            backgroundWorker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(backgroundWorker_finished);
+
+            backgroundWorker.RunWorkerAsync();
         }  
         
         // Prev button. Subtracts 1 from textBox1 value and currentRow variable.
@@ -478,10 +481,10 @@ namespace ThicknessTest
 
         // Abort Button
         private void button11_Click(object sender, EventArgs e)
-        {            
-            abortTestRoutine = true;
-            button11.Enabled = false;
-            button11.Visible = false;
+        {
+                abortTestRoutine = true;
+                button11.Enabled = false;
+                button11.Visible = false;
         }
 
         // Browse Button
@@ -934,6 +937,23 @@ namespace ThicknessTest
                 tbox.SelectionStart = tbox.Text.Length;
                 tbox.SelectionLength = 0;
             }
+        }
+
+        // Runs the test routine on a separate thread
+        private void backgroundWorker_doWork(object sender, DoWorkEventArgs e)
+        {
+            BackgroundWorker worker = sender as BackgroundWorker;
+            runRowThicknessTestRoutine();
+        }
+
+        // Resets buttons when the background worker finishes
+        private void backgroundWorker_finished(object sender, RunWorkerCompletedEventArgs e)
+        {
+            abortTestRoutine = false;
+            button11.Enabled = false;
+            button11.Visible = false;
+            RunTestButton.Enabled = true;
+            RunTestButton.Visible = true;
         }
     }
 
