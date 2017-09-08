@@ -28,7 +28,7 @@ namespace Thickness_Test_Settings
             intervalLengthMM = 76.2;
             numOfIntervals = 10;
             numOfRows = 13;
-            zaberOrigin = 330974;
+            zaberOrigin = 327000;
             dirFromOrigin = -1;
             targetThickness = 12.25;
             acceptableRange = 0.5;
@@ -100,6 +100,7 @@ namespace Thickness_Test_Settings
         private SortedDictionary<String, Settings> profiles;
         private string controlledProfilesFilePath;        
         private string defaultProfile;
+        private string defaultSaveLocation;
         private bool controlled;
         private static string internalSettingsFileName = "Internal_Settings.txt";
         private static string internalProfilesFilePath = "Thickness_Test_System_610_00051_Settings.txt";
@@ -123,14 +124,16 @@ namespace Thickness_Test_Settings
             "//, Length is in Millimeters (This value must either be True or False)\n" +
             "//, Number of Samples (The keyence will return an average of this many thickness samples)\n" +
             "//, \n" +
-            "//, Each value must be separated by a comma.\n"; 
+            "//, Each value must be separated by a comma.\n";
+
+        public string DefaultSaveLocation { get => defaultSaveLocation; set => defaultSaveLocation = value; }
 
         public Profiles()
         {
             controlledProfilesFilePath = "";
             controlled = false;
             profiles = new SortedDictionary<String, Settings>();
-            defaultProfile = "";
+            defaultProfile = "P:\\Turner MedTech\\ClearShield\\Work Order Data";
 
             loadInternalSettings();
             try
@@ -160,6 +163,9 @@ namespace Thickness_Test_Settings
             controlled = Convert.ToBoolean(line);
             line = reader.ReadLine();
             controlledProfilesFilePath = line;
+            line = reader.ReadLine();
+            defaultSaveLocation = line;
+
             reader.Close();
         }
 
@@ -167,7 +173,8 @@ namespace Thickness_Test_Settings
         {
             StreamWriter writer = new StreamWriter(internalSettingsFileName);
             writer.WriteLine(controlled);
-            writer.WriteLine(controlledProfilesFilePath);
+            writer.WriteLine(controlledProfilesFilePath);            
+            writer.WriteLine(defaultSaveLocation);
 
             writer.Close();
         }

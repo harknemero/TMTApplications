@@ -54,8 +54,7 @@ namespace ThicknessTest
 
                 }
                 return;
-            }
-
+            }            
             finally {
                 try
                 {
@@ -63,6 +62,8 @@ namespace ThicknessTest
                     zaber.finishMove();
                     zaber.Close();
                     keyence.Close();
+                    profiles.saveInternalSettings();
+
                 }
                 catch
                 {

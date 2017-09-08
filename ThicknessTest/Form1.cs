@@ -40,7 +40,7 @@ namespace ThicknessTest
             
             InitializeComponent();
 
-            dataTextUpdate(0);
+            dataTextInitialize();
             if(profiles.getDefaultProfileName() != "")
             {
                 settings = profiles.getProfile(profiles.getDefaultProfileName());
@@ -204,7 +204,13 @@ namespace ThicknessTest
             if (currentRow + 1 < settings.NumOfRows && !abortTestRoutine)
             {
                 currentRow++;
-                textBox1.Text = ("" + (currentRow + 1));
+                try
+                {
+                    textBox1.Text = ("" + (currentRow + 1));
+                }
+                catch
+                {
+                }
             }            
         }
 
@@ -265,34 +271,105 @@ namespace ThicknessTest
             updateSettingsControlsEnabledStatus();
         }
 
-        // Updates Data Grid
-        private void dataTextUpdate(int currentInterval)
-        {
+        // Initializes Data Grid
+        private void dataTextInitialize()
+        {            
             richTextBox1.Clear();
             for(int row = settings.NumOfIntervals-1; row >= 0; row--)
             {
                 for(int column = 0; column < settings.NumOfRows; column++)
                 {
-                    double value = data.getValueAt(column, row);
                     string valueString = string.Format("{0:00.00}", data.getValueAt(column, row));
-                    if(value < settings.TargetThickness - settings.ErrorRange || value > settings.TargetThickness + settings.ErrorRange)
-                    {
-                        richTextBox1.AppendText("  " + valueString + "  ", Color.Gray);
-                    }
-                    else if(value < settings.TargetThickness - settings.AcceptableRange)
-                    {
-                        richTextBox1.AppendText("  " + valueString + "  ", Color.Red);
-                    }
-                    else if (row == currentInterval && column == currentRow)
-                    {// Indicates the most recent sample taken, unless that sample is flagged a different color.
-                        richTextBox1.AppendText("  " + valueString + "  ", Color.Green);
-                    }
-                    else
-                    {
-                        richTextBox1.AppendText("  " + valueString + "  ");
-                    }
+
+                    richTextBox1.AppendText("  " + valueString + "  ", Color.Gray);                   
                 }
                 richTextBox1.AppendText("\n\n");
+            }            
+            richTextBox1.Update();
+        }
+
+        // Updates Data Grid by changing a single value.
+        private void dataTextUpdate(int currentInterval)
+        {
+            try
+            {
+                richTextBox1.DeselectAll();
+            }
+            catch
+            {
+            }
+            int textRow = settings.NumOfIntervals - currentInterval - 1;
+            int valueStartPos = textRow * (settings.NumOfRows * 9) + (currentRow * 9) + textRow * 2 + 2;
+            try
+            {
+                richTextBox1.Select(valueStartPos, 5);
+            }
+            catch
+            {
+            }
+            double value = data.getValueAt(currentRow, currentInterval);
+            string valueString = string.Format("{0:00.00}", value);
+            try
+            {
+                richTextBox1.SelectedText = valueString;
+            }
+            catch
+            {
+            }
+            // Set color depending on data value
+            try
+            {
+                if (value < settings.TargetThickness - settings.ErrorRange || value > settings.TargetThickness + settings.ErrorRange)
+                {
+                    richTextBox1.SelectionColor = Color.Gray;
+                }
+                else if (value < settings.TargetThickness - settings.AcceptableRange)
+                {
+                    richTextBox1.SelectionColor = Color.Red;
+                }
+                else
+                {
+                    richTextBox1.SelectionColor = Color.Black;
+                }
+            }
+            catch
+            {
+            }
+            try
+            {
+                richTextBox1.Update();
+            }
+            catch
+            {
+            }
+        }
+
+        // Updates the text color of the last row to be tested. (can't do it cross-thread)
+        private void dataTextColorUpdate(int lastRow)
+        {            
+            richTextBox1.DeselectAll();
+            for (int count = 0; count < settings.NumOfIntervals; count++) {
+                int textRow = settings.NumOfIntervals - count - 1;
+                int valueStartPos = textRow * (settings.NumOfRows * 9) + (lastRow * 9) + textRow * 2 + 2;
+                richTextBox1.Select(valueStartPos, 5);
+                double value = data.getValueAt(lastRow, count);
+                // Set color depending on data value
+                if (value < settings.TargetThickness - settings.ErrorRange)
+                {
+                    richTextBox1.SelectionColor = Color.Gray;
+                }
+                else if (value < settings.TargetThickness - settings.AcceptableRange)
+                {
+                    richTextBox1.SelectionColor = Color.Red;
+                }
+                else if (value > settings.TargetThickness + settings.AcceptableRange)
+                {
+                    richTextBox1.SelectionColor = Color.Blue;
+                }
+                else
+                {
+                    richTextBox1.SelectionColor = Color.Black;
+                }
             }
             richTextBox1.Update();
         }
@@ -367,16 +444,19 @@ namespace ThicknessTest
 
             saveFileDialog1.Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
             saveFileDialog1.AddExtension = true;
+            saveFileDialog1.InitialDirectory = profiles.DefaultSaveLocation;
             saveFileDialog1.DefaultExt = ".csv";
             saveFileDialog1.FilterIndex = 2;
             saveFileDialog1.RestoreDirectory = true;
 
             if (saveFileDialog1.ShowDialog() == DialogResult.OK)
             {
+                profiles.DefaultSaveLocation = Path.GetDirectoryName(saveFileDialog1.FileName);
                 StreamWriter myStream = new StreamWriter(saveFileDialog1.FileName);
                 myStream.Write(data.toString());
                 myStream.Close();
             }
+            profiles.saveInternalSettings();
         }
 
         // Clear Data button. Creates new empty ThicknessData using parameters from settings.
@@ -384,7 +464,7 @@ namespace ThicknessTest
         {
             data = new ThicknessData(settings.NumOfRows, settings.NumOfIntervals);
             textBox1.Text = "1";
-            dataTextUpdate(0);
+            dataTextInitialize();
         }
 
         // Set Origin to current zaber position
@@ -595,7 +675,7 @@ namespace ThicknessTest
                     {
                         settings.NumOfRows = Convert.ToInt32(textBox2.Text);
                         data = new ThicknessData(settings.NumOfRows, settings.NumOfIntervals);
-                        dataTextUpdate(0);
+                        dataTextInitialize();
                         textBox1.Text = "1";
                     }
                     else
@@ -622,7 +702,7 @@ namespace ThicknessTest
                     {
                         settings.NumOfIntervals = Convert.ToInt32(textBox3.Text);
                         data = new ThicknessData(settings.NumOfRows, settings.NumOfIntervals);
-                        dataTextUpdate(0);
+                        dataTextInitialize();
                         textBox1.Text = "1";
                         warningUpdate(); // Possible tracklength warning
                     }
@@ -954,6 +1034,8 @@ namespace ThicknessTest
             button11.Visible = false;
             RunTestButton.Enabled = true;
             RunTestButton.Visible = true;
+            dataTextColorUpdate(currentRow - 1);
+            richTextBox1.DeselectAll();
         }
     }
 

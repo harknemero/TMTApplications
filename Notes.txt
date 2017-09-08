@@ -9,7 +9,7 @@ Zaber Reference
 	1 inch = 25.4 mm
 	237.037 steps per millimeter
 	18062 steps = 3 inches
-	Origin = 330974
+	Origin = 327000
 	Total Steps (estimate) = 354371
 
 Keyence Reference

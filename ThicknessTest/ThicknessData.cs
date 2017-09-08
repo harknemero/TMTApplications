@@ -62,7 +62,7 @@ namespace Thickness_Data
             row = new double[numOfIntervals];
             for(int count = 0; count < numOfIntervals; count++)
             {
-                row[count] = -1;
+                row[count] = 0;
             }
         }
 
