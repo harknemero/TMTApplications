@@ -1,0 +1,19 @@
+﻿
+High Shear Mix Controller
+
+Purpose: Regulate solution temperature by adjusting mix speed.
+
+Features:
+
+GUI Components:
+	Manual Control
+		Speed input box - limits input to acceptable range of values.
+		Start/Stop buttons
+	Automatic
+		Temperature input box
+		Start/Stop Buttons
+	Status
+		Displays connection status of thermometer and SMV
+		Displays current solution temperature
+		Displays current speed
+		Displays predicted equilibrium temperature
