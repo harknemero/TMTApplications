@@ -54,6 +54,8 @@ namespace ThicknessTest
             {
                 zaberDisconnected();
             }
+
+            tabControl1.Dock = DockStyle.Fill;
         }
 
         // Runs Keyence and Zaber through thickness test routine, and stores their data feedback.
@@ -78,17 +80,43 @@ namespace ThicknessTest
             double offset = 0; // This variable is used to keep track of offset positions in the event
             // that Active Error Correction is activated.
             double retestDistance = 5; // This is how far (millimeters) the zaber moves from position to take a new sample.
-            for (int count = 0; count < settings.NumOfIntervals; count++)
-            {
-                if (abortTestRoutine)
+            for (int count = 0; count < settings.NumOfIntervals && !abortTestRoutine; count++)
+            {                
+                try
                 {
-                    count = settings.NumOfIntervals;
+                    lastSample = keyence.averageOfXSamples(settings.SampleSize, settings.TargetThickness, settings.ErrorRange);
                 }
-                else
+                catch (Exception ex)
+                {
+                    if (ex is ArgumentException || ex is InvalidOperationException)
+                    {
+                        Console.WriteLine(ex.Message);
+                        keyenceDisconnected();
+                    }
+                    else
+                    {
+                        throw new System.ArgumentException("Unknown Exception On Keyence Call.");
+                    }
+                }
+                // Active Error Correction Round 1
+                if (lastSample < settings.TargetThickness - settings.ErrorRange ||
+                    lastSample > settings.TargetThickness + settings.ErrorRange)
                 {
                     try
                     {
-                        lastSample = keyence.averageOfXSamples(settings.SampleSize, settings.TargetThickness, settings.ErrorRange);
+                        zaber.moveRel(retestDistance, settings.DirFromOrigin * (-1));
+                        offset = retestDistance;
+                        zaber.finishMove();
+                    }
+                    catch (System.ArgumentException ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                        zaberDisconnected();
+                    }
+                    System.Threading.Thread.Sleep(waitTimeToStabilize);
+                    try
+                    {
+                        tempSample = keyence.averageOfXSamples(settings.SampleSize, settings.TargetThickness, settings.ErrorRange);
                     }
                     catch (Exception ex)
                     {
@@ -102,14 +130,14 @@ namespace ThicknessTest
                             throw new System.ArgumentException("Unknown Exception On Keyence Call.");
                         }
                     }
-                    // Active Error Correction Round 1
-                    if (lastSample < settings.TargetThickness - settings.ErrorRange ||
-                        lastSample > settings.TargetThickness + settings.ErrorRange)
+                    // Active Error Correction Round 2
+                    if (tempSample < settings.TargetThickness - settings.ErrorRange ||
+                    tempSample > settings.TargetThickness + settings.ErrorRange)
                     {
                         try
                         {
-                            zaber.moveRel(retestDistance, settings.DirFromOrigin * (-1));
-                            offset = retestDistance;
+                            zaber.moveRel(retestDistance * 2, settings.DirFromOrigin);
+                            offset = retestDistance * (-1);
                             zaber.finishMove();
                         }
                         catch (System.ArgumentException ex)
@@ -134,67 +162,50 @@ namespace ThicknessTest
                                 throw new System.ArgumentException("Unknown Exception On Keyence Call.");
                             }
                         }
-                        // Active Error Correction Round 2
-                        if (tempSample < settings.TargetThickness - settings.ErrorRange ||
-                        tempSample > settings.TargetThickness + settings.ErrorRange)
-                        {
-                            try
-                            {
-                                zaber.moveRel(retestDistance * 2, settings.DirFromOrigin);
-                                offset = retestDistance * (-1);
-                                zaber.finishMove();
-                            }
-                            catch (System.ArgumentException ex)
-                            {
-                                Console.WriteLine(ex.Message);
-                                zaberDisconnected();
-                            }
-                            System.Threading.Thread.Sleep(waitTimeToStabilize);
-                            try
-                            {
-                                tempSample = keyence.averageOfXSamples(settings.SampleSize, settings.TargetThickness, settings.ErrorRange);
-                            }
-                            catch (Exception ex)
-                            {
-                                if (ex is ArgumentException || ex is InvalidOperationException)
-                                {
-                                    Console.WriteLine(ex.Message);
-                                    keyenceDisconnected();
-                                }
-                                else
-                                {
-                                    throw new System.ArgumentException("Unknown Exception On Keyence Call.");
-                                }
-                            }
-                        }
-                        if (tempSample < settings.TargetThickness - settings.ErrorRange ||
-                        tempSample > settings.TargetThickness + settings.ErrorRange)
-                        {
-                            lastSample = tempSample;
-                        }
                     }
-                    data.recordData(currentRow, count, lastSample);
-                    dataTextUpdate(count);
-                    if (count + 1 < settings.NumOfIntervals)
+                    if (tempSample < settings.TargetThickness - settings.ErrorRange ||
+                    tempSample > settings.TargetThickness + settings.ErrorRange)
                     {
-                        try
-                        {
-                            zaber.moveRel(settings.IntervalLengthMM + offset, settings.DirFromOrigin);
-                            offset = 0; // Offset should be corrected now. Reset to 0.
-                            zaber.finishMove();
-                        }
-                        catch (System.ArgumentException ex)
-                        {
-                            Console.WriteLine(ex.Message);
-                            zaberDisconnected();
-                        }
-                        System.Threading.Thread.Sleep(200);
+                        lastSample = tempSample;
                     }
                 }
+                data.recordData(currentRow, count, lastSample);
+                dataTextUpdate(count);
+                if (count + 1 < settings.NumOfIntervals)
+                {
+                    try
+                    {
+                        zaber.moveRel(settings.IntervalLengthMM + offset, settings.DirFromOrigin);
+                        offset = 0; // Offset should be corrected now. Reset to 0.
+                        zaber.finishMove();
+                    }
+                    catch (System.ArgumentException ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                        zaberDisconnected();
+                    }
+                    System.Threading.Thread.Sleep(200);
+                }
+                
             }
-            try { 
-            zaber.moveABS(settings.ZaberOrigin);
-            zaber.finishMove();
+            try
+            { 
+                if(settings.DirFromOrigin > 0)
+                {
+                    zaber.moveABS(settings.ZaberOrigin);
+                    zaber.finishMove();
+                    zaber.goHome();
+                    zaber.finishMove();
+                    zaber.moveABS(settings.ZaberOrigin);
+                }
+                else
+                {
+                    zaber.goHome();
+                    zaber.finishMove();
+                    zaber.moveABS(settings.ZaberOrigin);
+                    zaber.finishMove();
+                }
+                
             }
             catch (System.ArgumentException ex)
             {
@@ -346,7 +357,11 @@ namespace ThicknessTest
 
         // Updates the text color of the last row to be tested. (can't do it cross-thread)
         private void dataTextColorUpdate(int lastRow)
-        {            
+        {                 
+            if(lastRow < 0) // This only occurs in the case where a test routine is aborted on row[0]
+            {
+                lastRow = 0;
+            }
             richTextBox1.DeselectAll();
             for (int count = 0; count < settings.NumOfIntervals; count++) {
                 int textRow = settings.NumOfIntervals - count - 1;
@@ -392,7 +407,7 @@ namespace ThicknessTest
                 else if (finalPos > zaber.getMaxSteps())
                 {
                     label12.Text = "Warning: Final position cannot be reached due to finite track length!\n" +
-                        "Final Position will be approximately " + (finalPos - zaber.getMaxSteps()) / zaber.getStepsPerMM() + "mm past Home (zero) position." +
+                        "Final Position will be approximately " + (finalPos - zaber.getMaxSteps()) / zaber.getStepsPerMM() + "mm past End Of Track." +
                         "Consider changing one or more of: Origin, Direction, Interval Length, Intervals Per Sequence";
                 }
                 else
@@ -551,6 +566,10 @@ namespace ThicknessTest
                     {
                         RunTestButton.Enabled = true;
                     }
+                    zaber.goHome();
+                    zaber.finishMove();
+                    zaber.moveABS(settings.ZaberOrigin);
+                    zaber.finishMove();
                 }
                 else
                 {
@@ -1028,14 +1047,39 @@ namespace ThicknessTest
 
         // Resets buttons when the background worker finishes
         private void backgroundWorker_finished(object sender, RunWorkerCompletedEventArgs e)
-        {
-            abortTestRoutine = false;
+        {            
             button11.Enabled = false;
             button11.Visible = false;
             RunTestButton.Enabled = true;
             RunTestButton.Visible = true;
-            dataTextColorUpdate(currentRow - 1);
+            if (!abortTestRoutine)
+            {
+                dataTextColorUpdate(currentRow - 1);
+            }
+            else
+            {
+                dataTextColorUpdate(currentRow);
+            }
             richTextBox1.DeselectAll();
+            abortTestRoutine = false;
+        }
+
+        // Resizes tabs and richTextBox1
+        private void Form1_ResizeEnd(object sender, EventArgs e)
+        {
+            
+            //richTextBox1.Width = Form1.ActiveForm.Width - 40;
+            //richTextBox1.Height = Form1.ActiveForm.Height - 115;
+        }
+
+        private void tabControl1_SizeChanged(object sender, EventArgs e)
+        {
+            Console.WriteLine("Stalling");
+            if (Form1.ActiveForm != null)
+            {
+                richTextBox1.Width = tabControl1.Width - 20;
+                richTextBox1.Height = tabControl1.Height - 70;
+            }
         }
     }
 

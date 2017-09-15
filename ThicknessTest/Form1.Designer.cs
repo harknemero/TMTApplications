@@ -97,8 +97,10 @@
             this.tabControl1.Location = new System.Drawing.Point(2, 2);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(923, 524);
+            this.tabControl1.Size = new System.Drawing.Size(850, 395);
+            this.tabControl1.SizeMode = System.Windows.Forms.TabSizeMode.FillToRight;
             this.tabControl1.TabIndex = 0;
+            this.tabControl1.SizeChanged += new System.EventHandler(this.tabControl1_SizeChanged);
             // 
             // tabPage1
             // 
@@ -117,7 +119,7 @@
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(915, 498);
+            this.tabPage1.Size = new System.Drawing.Size(842, 369);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Test";
             this.tabPage1.UseVisualStyleBackColor = true;
@@ -135,7 +137,7 @@
             // 
             // button10
             // 
-            this.button10.Location = new System.Drawing.Point(643, 7);
+            this.button10.Location = new System.Drawing.Point(603, 7);
             this.button10.Name = "button10";
             this.button10.Size = new System.Drawing.Size(58, 23);
             this.button10.TabIndex = 12;
@@ -145,7 +147,7 @@
             // 
             // button9
             // 
-            this.button9.Location = new System.Drawing.Point(429, 7);
+            this.button9.Location = new System.Drawing.Point(405, 7);
             this.button9.Name = "button9";
             this.button9.Size = new System.Drawing.Size(58, 23);
             this.button9.TabIndex = 11;
@@ -157,7 +159,7 @@
             // 
             this.label14.AutoSize = true;
             this.label14.ForeColor = System.Drawing.Color.Green;
-            this.label14.Location = new System.Drawing.Point(524, 12);
+            this.label14.Location = new System.Drawing.Point(485, 12);
             this.label14.Name = "label14";
             this.label14.Size = new System.Drawing.Size(93, 13);
             this.label14.TabIndex = 10;
@@ -167,7 +169,7 @@
             // 
             this.label1.AutoSize = true;
             this.label1.ForeColor = System.Drawing.Color.Green;
-            this.label1.Location = new System.Drawing.Point(296, 12);
+            this.label1.Location = new System.Drawing.Point(270, 12);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(107, 13);
             this.label1.TabIndex = 9;
@@ -175,7 +177,7 @@
             // 
             // button4
             // 
-            this.button4.Location = new System.Drawing.Point(769, 6);
+            this.button4.Location = new System.Drawing.Point(698, 6);
             this.button4.Name = "button4";
             this.button4.Size = new System.Drawing.Size(67, 24);
             this.button4.TabIndex = 8;
@@ -185,7 +187,7 @@
             // 
             // button3
             // 
-            this.button3.Location = new System.Drawing.Point(842, 6);
+            this.button3.Location = new System.Drawing.Point(771, 6);
             this.button3.Name = "button3";
             this.button3.Size = new System.Drawing.Size(67, 24);
             this.button3.TabIndex = 7;
@@ -198,7 +200,7 @@
             this.richTextBox1.Location = new System.Drawing.Point(6, 36);
             this.richTextBox1.Name = "richTextBox1";
             this.richTextBox1.ReadOnly = true;
-            this.richTextBox1.Size = new System.Drawing.Size(906, 456);
+            this.richTextBox1.Size = new System.Drawing.Size(832, 326);
             this.richTextBox1.TabIndex = 6;
             this.richTextBox1.Text = "";
             this.richTextBox1.WordWrap = false;
@@ -253,7 +255,7 @@
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(915, 498);
+            this.tabPage2.Size = new System.Drawing.Size(842, 498);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Settings";
             this.tabPage2.UseVisualStyleBackColor = true;
@@ -641,10 +643,11 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(919, 524);
+            this.ClientSize = new System.Drawing.Size(851, 399);
             this.Controls.Add(this.tabControl1);
             this.Name = "Form1";
             this.Text = "ClearShield Thickness Test";
+            this.ResizeEnd += new System.EventHandler(this.Form1_ResizeEnd);
             this.tabControl1.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
             this.tabPage1.PerformLayout();
