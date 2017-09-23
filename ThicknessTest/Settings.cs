@@ -65,6 +65,21 @@ namespace Thickness_Test_Settings
             maxNumOfRows = 500; // arbitrary value for user input handling only. Increase if needed.
         }
 
+        public Settings(Settings s)
+        {
+            intervalLengthMM = s.IntervalLengthMM;
+            numOfIntervals = s.NumOfIntervals;
+            numOfRows = s.NumOfRows;
+            zaberOrigin = s.ZaberOrigin;
+            dirFromOrigin = s.DirFromOrigin;
+            targetThickness = s.TargetThickness;
+            acceptableRange = s.AcceptableRange;
+            errorRange = s.ErrorRange;
+            isLengthInMillimeters = s.IsLengthInMillimeters;
+            sampleSize = s.SampleSize;
+            maxNumOfRows = s.MaxNumOfRows;
+        }
+
         public String toString()
         {
             StringBuilder sb = new StringBuilder();
@@ -107,7 +122,6 @@ namespace Thickness_Test_Settings
         private static string commentsAndInstructions =
             "//, This file contains settings profiles for the ClearShield thickness test system.\n" +
             "//, The contents of this file should not be altered except by authorized personel.\n" +
-            "//, The first line following the instructions contains the profile to be loaded on startup.\n" +
             "//, If no startup profile is set then a blank line should follow the instructions.\n" +
             "//, Each line following the startup profile line will contain the settings for a single profile.\n" +
             "//, \n" +
@@ -133,7 +147,8 @@ namespace Thickness_Test_Settings
             controlledProfilesFilePath = "";
             controlled = false;
             profiles = new SortedDictionary<String, Settings>();
-            defaultProfile = "P:\\Turner MedTech\\ClearShield\\Work Order Data";
+            defaultProfile = "";
+            defaultSaveLocation = "P:\\Turner MedTech\\ClearShield\\Work Order Data";
 
             loadInternalSettings();
             try
@@ -149,22 +164,26 @@ namespace Thickness_Test_Settings
         public void loadInternalSettings()
         {
             string line;
-            StreamReader reader;
+            StreamReader reader = null;
             try
             {
                 reader = new StreamReader(internalSettingsFileName);
+
+                line = reader.ReadLine();
+                setDefaultProfileName(line);
+                line = reader.ReadLine();
+                controlled = Convert.ToBoolean(line);
+                line = reader.ReadLine();
+                controlledProfilesFilePath = line;
+                line = reader.ReadLine();
+                defaultSaveLocation = line;
             }
             catch
             {
+                reader.Close();
                 saveInternalSettings();
                 return;
             }
-            line = reader.ReadLine();
-            controlled = Convert.ToBoolean(line);
-            line = reader.ReadLine();
-            controlledProfilesFilePath = line;
-            line = reader.ReadLine();
-            defaultSaveLocation = line;
 
             reader.Close();
         }
@@ -172,6 +191,7 @@ namespace Thickness_Test_Settings
         public void saveInternalSettings()
         {
             StreamWriter writer = new StreamWriter(internalSettingsFileName);
+            writer.WriteLine(getDefaultProfileName());
             writer.WriteLine(controlled);
             writer.WriteLine(controlledProfilesFilePath);            
             writer.WriteLine(defaultSaveLocation);
@@ -216,8 +236,6 @@ namespace Thickness_Test_Settings
                     line = reader.ReadLine();
                 }
             }
-            defaultProfile = line;
-            line = reader.ReadLine();
             // Read and parse each line into the profiles object.
             profiles.Clear();
             profiles = new SortedDictionary<String, Settings>();
@@ -249,7 +267,6 @@ namespace Thickness_Test_Settings
                 StreamWriter writer = new StreamWriter(internalProfilesFilePath);
                 StringBuilder sb = new StringBuilder();
                 sb.Append(commentsAndInstructions);
-                sb.Append(defaultProfile + "\n");
                 foreach (KeyValuePair<String, Settings> profile in profiles)
                 {
                     sb.Append(profile.Key + ",");
@@ -282,7 +299,8 @@ namespace Thickness_Test_Settings
 
         public Settings getProfile(String key)
         {
-            return profiles[key];
+            Settings newSet = new Settings(profiles[key]);
+            return newSet;
         }
 
         public String[] getKeys()
@@ -306,7 +324,7 @@ namespace Thickness_Test_Settings
                 throw new System.ArgumentException("Profile Not Deleted");
             }
             setDefaultProfileName("");
-            saveProfiles();
+            saveInternalSettings();
         }
 
         public bool isControlled()
@@ -347,8 +365,15 @@ namespace Thickness_Test_Settings
 
         public void setDefaultProfileName(String name)
         {
-            defaultProfile = name;
-            saveProfiles();
+            if (name == null)
+            {
+                defaultProfile = "";
+            }
+            else
+            {
+                defaultProfile = name;
+            }
+            saveInternalSettings();
         }
     }
     

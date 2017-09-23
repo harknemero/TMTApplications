@@ -280,22 +280,55 @@ namespace ThicknessTest
                 checkBox1.Checked = false;
             }
             updateSettingsControlsEnabledStatus();
+            updateDistanceMarkLabel();
         }
 
         // Initializes Data Grid
         private void dataTextInitialize()
         {            
             richTextBox1.Clear();
-            for(int row = settings.NumOfIntervals-1; row >= 0; row--)
+            for (int row = settings.NumOfIntervals-1; row >= 0; row--)
             {
-                for(int column = 0; column < settings.NumOfRows; column++)
+                string rowString;
+                if (settings.IsLengthInMillimeters)
+                {
+                    rowString = String.Format("{0,7}", "" + Convert.ToInt32(row * settings.IntervalLengthMM));
+                }
+                else
+                {
+                    rowString = String.Format("{0,7}", ("" + (row * settings.IntervalLengthMM)/zaber.getMMperInch()));
+                }
+                richTextBox1.AppendText("\n " + rowString + "  |  ", Color.Black);
+
+                // settings.NumOfRows in this context refers to the number of sequences, or the number of columns
+                // in the thickness data. Dumb, I know...
+                for (int column = 0; column < settings.NumOfRows; column++)
                 {
                     string valueString = string.Format("{0:00.00}", data.getValueAt(column, row));
 
-                    richTextBox1.AppendText("  " + valueString + "  ", Color.Gray);                   
+                    richTextBox1.AppendText(" " + valueString + " ", Color.Gray);                   
                 }
-                richTextBox1.AppendText("\n\n");
-            }            
+                richTextBox1.AppendText("\n          |  ", Color.Black);
+            }
+            richTextBox1.AppendText("__");
+            for (int column = 0; column < settings.NumOfRows; column++)
+            {
+                richTextBox1.AppendText("_______", Color.Black);
+            }
+            richTextBox1.AppendText("\n     0      ");
+            for (int column = 0; column < settings.NumOfRows; column++)
+            {
+                string columnString;
+                if (settings.IsLengthInMillimeters)
+                {
+                    columnString = String.Format("{0,6}", ("" + Convert.ToInt32(column * settings.IntervalLengthMM)));
+                }
+                else
+                {
+                    columnString = String.Format("{0,6}", ("" + (column * settings.IntervalLengthMM) / zaber.getMMperInch()));
+                }
+                richTextBox1.AppendText(" " + columnString, Color.Black);
+            }
             richTextBox1.Update();
         }
 
@@ -310,7 +343,7 @@ namespace ThicknessTest
             {
             }
             int textRow = settings.NumOfIntervals - currentInterval - 1;
-            int valueStartPos = textRow * (settings.NumOfRows * 9) + (currentRow * 9) + textRow * 2 + 2;
+            int valueStartPos = textRow * (settings.NumOfRows * 7 + 14) + (currentRow * 7) + textRow * 14 + 15;
             try
             {
                 richTextBox1.Select(valueStartPos, 5);
@@ -365,7 +398,7 @@ namespace ThicknessTest
             richTextBox1.DeselectAll();
             for (int count = 0; count < settings.NumOfIntervals; count++) {
                 int textRow = settings.NumOfIntervals - count - 1;
-                int valueStartPos = textRow * (settings.NumOfRows * 9) + (lastRow * 9) + textRow * 2 + 2;
+                int valueStartPos = textRow * (settings.NumOfRows * 7 + 14) + (lastRow * 7) + textRow * 14 + 15;
                 richTextBox1.Select(valueStartPos, 5);
                 double value = data.getValueAt(lastRow, count);
                 // Set color depending on data value
@@ -615,6 +648,7 @@ namespace ThicknessTest
                 textBox4.Text = "" + (value);
                 Update();
             }
+            updateDistanceMarkLabel();
         }
 
         // Length in Inches radio button
@@ -635,6 +669,7 @@ namespace ThicknessTest
                 textBox4.Text = "" + (value);
                 Update();
             }
+            updateDistanceMarkLabel();
         }
 
         // Away from home radio button
@@ -674,6 +709,14 @@ namespace ThicknessTest
                         currentRow = Convert.ToInt32(textBox1.Text) - 1;
                     }
                     textBox1.Update();
+                    if (settings.IsLengthInMillimeters)
+                    {
+                        label16.Text = ("Go to the  " + (settings.IntervalLengthMM * currentRow) + "  mm mark.");
+                    }
+                    else
+                    {
+                        label16.Text = ("Go to the  " + ((settings.IntervalLengthMM / zaber.getMMperInch()) * currentRow) + "  inch mark.");
+                    }
                 }
             }
             catch
@@ -681,6 +724,7 @@ namespace ThicknessTest
                 textBox1.Text = (1 + "");
             }
             moveCursorToEndOfText(textBox1);
+            updateDistanceMarkLabel();
         }
 
         // Number of Sequences
@@ -772,6 +816,7 @@ namespace ThicknessTest
             }
             Update();
             moveCursorToEndOfText(textBox4);
+            updateDistanceMarkLabel();
         }
         
         // Set Target Thickness
@@ -985,6 +1030,19 @@ namespace ThicknessTest
             }  
         }
 
+        // Updates "Go to 'distance' mark" label
+        private void updateDistanceMarkLabel()
+        {
+            if (settings.IsLengthInMillimeters)
+            {
+                label16.Text = ("Go to the  " + (settings.IntervalLengthMM * currentRow) + "  mm mark.");
+            }
+            else
+            {
+                label16.Text = ("Go to the  " + ((settings.IntervalLengthMM / zaber.getMMperInch()) * currentRow) + "  inch mark.");
+            }
+        }
+
         // Populates drowdown list on comboBox1
         private void loadProfileMenu()
         {
@@ -1054,11 +1112,25 @@ namespace ThicknessTest
             RunTestButton.Visible = true;
             if (!abortTestRoutine)
             {
-                dataTextColorUpdate(currentRow - 1);
+                if (currentRow < settings.NumOfRows)
+                {
+                    dataTextColorUpdate(currentRow - 1);
+                }
+                else
+                {
+                    dataTextColorUpdate(currentRow);
+                }
             }
             else
             {
-                dataTextColorUpdate(currentRow);
+                if (currentRow < settings.NumOfRows)
+                {
+                    dataTextColorUpdate(currentRow - 1);
+                }
+                else
+                {
+                    dataTextColorUpdate(currentRow);
+                }
             }
             richTextBox1.DeselectAll();
             abortTestRoutine = false;
