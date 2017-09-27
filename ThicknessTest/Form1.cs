@@ -211,18 +211,7 @@ namespace ThicknessTest
             {
                 Console.WriteLine(ex.Message);
                 zaberDisconnected();
-            }
-            if (currentRow + 1 < settings.NumOfRows && !abortTestRoutine)
-            {
-                currentRow++;
-                try
-                {
-                    textBox1.Text = ("" + (currentRow + 1));
-                }
-                catch
-                {
-                }
-            }            
+            }           
         }
 
         // Updates and populates all controls in the settings tab.
@@ -582,6 +571,7 @@ namespace ThicknessTest
                 else
                 {
                     label1.Text = "Keyence: Failed";
+                    label1.ForeColor = Color.Red;
                 }
             }
         }
@@ -607,6 +597,7 @@ namespace ThicknessTest
                 else
                 {
                     label14.Text = "Zaber: Failed";
+                    label14.ForeColor = Color.Red;
                 }
             }
         }
@@ -895,7 +886,7 @@ namespace ThicknessTest
         private void textBox8_TextChanged(object sender, EventArgs e)
         {
             label13.Text = "";
-            moveCursorToEndOfText(textBox8);
+            //moveCursorToEndOfText(textBox8);
         }
 
         // Set Keyence Sample Size
@@ -924,6 +915,34 @@ namespace ThicknessTest
                 e.Handled = true;
                 profiles.setControlledProfilesFilePath(textBox10.Text);
             }
+        }
+
+        // Font Size
+        private void textBox11_TextChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                if (textBox11.Text != "")
+                {
+                    System.Drawing.Font font = richTextBox1.SelectionFont;
+                    if (Convert.ToInt32(textBox11.Text) < 1 || Convert.ToInt32(textBox11.Text) > 48)
+                    {
+                        richTextBox1.Font = new Font("Courier New", 8);
+                        textBox11.Text = (8 + "");
+                    }
+                    else
+                    {
+                        richTextBox1.Font = new Font("Courier New", Convert.ToInt32(textBox11.Text));
+                    }
+                    textBox11.Update();
+                }
+            }
+            catch
+            {
+                textBox11.Text = (8 + "");
+            }
+            moveCursorToEndOfText(textBox11);
+            richTextBox1.Update();
         }
 
         // Profile Selection Dropdown Menu
@@ -1112,26 +1131,12 @@ namespace ThicknessTest
             RunTestButton.Visible = true;
             if (!abortTestRoutine)
             {
-                if (currentRow < settings.NumOfRows)
-                {
-                    dataTextColorUpdate(currentRow - 1);
-                }
-                else
-                {
-                    dataTextColorUpdate(currentRow);
-                }
-            }
-            else
-            {
-                if (currentRow < settings.NumOfRows)
-                {
-                    dataTextColorUpdate(currentRow - 1);
-                }
-                else
-                {
-                    dataTextColorUpdate(currentRow);
-                }
-            }
+                currentRow++;
+                dataTextColorUpdate(currentRow-1);
+                if (currentRow + 1 > settings.NumOfRows) { currentRow--; };
+                textBox1.Text = ("" + (currentRow + 1));
+            }            
+
             richTextBox1.DeselectAll();
             abortTestRoutine = false;
         }
@@ -1149,8 +1154,8 @@ namespace ThicknessTest
             Console.WriteLine("Stalling");
             if (Form1.ActiveForm != null)
             {
-                richTextBox1.Width = tabControl1.Width - 20;
-                richTextBox1.Height = tabControl1.Height - 70;
+                richTextBox1.Width = tabControl1.Width - 20; // - 20
+                richTextBox1.Height = tabControl1.Height - 90; // - 70
             }
         }
     }
