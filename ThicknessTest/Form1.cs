@@ -58,7 +58,7 @@ namespace ThicknessTest
             tabControl1.Dock = DockStyle.Fill;
         }
 
-        // Runs Keyence and Zaber through thickness test routine, and stores their data feedback.
+        // Runs Keyence and Zaber through thickness test routine, and stores their data feedback. **Called Asynchronously**
         private void runRowThicknessTestRoutine()
         {            
             try
@@ -214,7 +214,7 @@ namespace ThicknessTest
             }           
         }
 
-        // Updates and populates all controls in the settings tab.
+        // Updates and populates all controls in the settings tab with data from this.settings.
         private void loadSettings()
         {
             // Millimeters/Inches Radio buttons alter text box data upon changing, so set them first.
@@ -439,7 +439,7 @@ namespace ThicknessTest
             }
         }
         
-        // This is a Button. Runs test sequence according to current settings.
+        // This is a Button. Runs test sequence according to current settings. **Runs BackgroundWorker**
         private void TestRowButton_Click(object sender, EventArgs e)
         {
             RunTestButton.Visible = false;
@@ -480,14 +480,22 @@ namespace ThicknessTest
             SaveFileDialog saveFileDialog1 = new SaveFileDialog();
 
             saveFileDialog1.Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
-            saveFileDialog1.AddExtension = true;
+            saveFileDialog1.AddExtension = false;
             saveFileDialog1.InitialDirectory = profiles.DefaultSaveLocation;
-            saveFileDialog1.DefaultExt = ".csv";
+            //saveFileDialog1.DefaultExt = ".csv";
             saveFileDialog1.FilterIndex = 2;
             saveFileDialog1.RestoreDirectory = true;
 
             if (saveFileDialog1.ShowDialog() == DialogResult.OK)
             {
+                if (profiles.isControlled())
+                {
+                    saveFileDialog1.FileName += ".csv";
+                }
+                else
+                {
+                    saveFileDialog1.FileName += "_UnControlled.csv";
+                }
                 profiles.DefaultSaveLocation = Path.GetDirectoryName(saveFileDialog1.FileName);
                 StreamWriter myStream = new StreamWriter(saveFileDialog1.FileName);
                 myStream.Write(data.toString());
@@ -625,7 +633,12 @@ namespace ThicknessTest
             {
                 textBox10.Text = openFileDialog1.FileName;
                 textBox10.Focus();
+                moveCursorToEndOfText(textBox10);
                 SendKeys.Send("{ENTER}"); // This can create issues during debugging.
+                profiles.setControlledProfilesFilePath(textBox10.Text);
+                profiles.loadProfiles();
+                settings = profiles.getProfile(profiles.getDefaultProfileName());
+                loadSettings();
             }
         }
 
@@ -886,7 +899,12 @@ namespace ThicknessTest
         private void textBox8_TextChanged(object sender, EventArgs e)
         {
             label13.Text = "";
-            //moveCursorToEndOfText(textBox8);
+            if (textBox8.Text.Contains(","))
+            {
+                textBox8.Text = textBox8.Text.Remove(textBox8.Text.Length-1, 1);
+                moveCursorToEndOfText(textBox8);
+                label13.Text = "No Commas";
+            }
         }
 
         // Set Keyence Sample Size
@@ -925,14 +943,14 @@ namespace ThicknessTest
                 if (textBox11.Text != "")
                 {
                     System.Drawing.Font font = richTextBox1.SelectionFont;
-                    if (Convert.ToInt32(textBox11.Text) < 1 || Convert.ToInt32(textBox11.Text) > 48)
+                    if (Convert.ToSingle(textBox11.Text) < 1 || Convert.ToSingle(textBox11.Text) > 48)
                     {
                         richTextBox1.Font = new Font("Courier New", 8);
                         textBox11.Text = (8 + "");
                     }
                     else
                     {
-                        richTextBox1.Font = new Font("Courier New", Convert.ToInt32(textBox11.Text));
+                        richTextBox1.Font = new Font("Courier New", Convert.ToSingle(textBox11.Text));
                     }
                     textBox11.Update();
                 }
@@ -967,7 +985,7 @@ namespace ThicknessTest
                     }
                     catch
                     {
-                        button12.PerformClick();
+                        button12_Click(new object(), new EventArgs());
                     }
                 }
             }
@@ -981,11 +999,22 @@ namespace ThicknessTest
                     }
                     catch
                     {
-                        button12.PerformClick();
+                        button12_Click(new object(), new EventArgs());
                     }
                 }            
             }
-            loadSettings();
+            updateSettingsControlsEnabledStatus();
+            try
+            {
+                profiles.loadProfiles();
+                settings = profiles.getProfile(profiles.getDefaultProfileName());
+                loadSettings();
+            }
+            catch(FileNotFoundException)
+            {
+                label13.Text = "Settings File Not Found";
+            }
+            
         }
 
         // Updates Enabled/Disabled Status of Settings Tab Controls
@@ -1149,6 +1178,7 @@ namespace ThicknessTest
             //richTextBox1.Height = Form1.ActiveForm.Height - 115;
         }
 
+        // Resizes richTextBox1 based on changes in tabControl1 size changes (that is changed with form1 resizing)
         private void tabControl1_SizeChanged(object sender, EventArgs e)
         {
             Console.WriteLine("Stalling");
@@ -1160,8 +1190,11 @@ namespace ThicknessTest
         }
     }
 
+    // Extends functionality for RichTextBoxes
     public static class RichTextBoxExtensions
     {
+        // Enables text appending on RichTextBoxes with ability to set color.
+        // *********** No longer called in dataTextUpdate. Still called in dataTextInitialize.
         public static void AppendText(this RichTextBox box, string text, Color color)
         {
             box.SelectionStart = box.TextLength;

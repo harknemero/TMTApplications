@@ -28,8 +28,8 @@ namespace Thickness_Test_Settings
             intervalLengthMM = 76.2;
             numOfIntervals = 10;
             numOfRows = 13;
-            zaberOrigin = 327000;
-            dirFromOrigin = -1;
+            zaberOrigin = 26083;
+            dirFromOrigin = 1;
             targetThickness = 12.25;
             acceptableRange = 0.5;
             errorRange = 2;
@@ -115,6 +115,7 @@ namespace Thickness_Test_Settings
         private SortedDictionary<String, Settings> profiles;
         private string controlledProfilesFilePath;        
         private string defaultProfile;
+        private string defaultControlledProfile;
         private string defaultSaveLocation;
         private bool controlled;
         private static string internalSettingsFileName = "Internal_Settings.txt";
@@ -126,7 +127,7 @@ namespace Thickness_Test_Settings
             "//, Each line following the startup profile line will contain the settings for a single profile.\n" +
             "//, \n" +
             "//, The settings values for each profile are listed in the following order:\n" +
-            "//, Profile Name\n" +
+            "//, Profile Name -!Must not contain any commas!-\n" +
             "//, Interval Length in Millimeters\n" +
             "//, Intervals Per Run\n" +
             "//, Number of Runs\n" +
@@ -148,6 +149,7 @@ namespace Thickness_Test_Settings
             controlled = false;
             profiles = new SortedDictionary<String, Settings>();
             defaultProfile = "";
+            defaultControlledProfile = "";
             defaultSaveLocation = "P:\\Turner MedTech\\ClearShield\\Work Order Data";
 
             loadInternalSettings();
@@ -170,7 +172,9 @@ namespace Thickness_Test_Settings
                 reader = new StreamReader(internalSettingsFileName);
 
                 line = reader.ReadLine();
-                setDefaultProfileName(line);
+                defaultProfile = line;
+                line = reader.ReadLine();
+                defaultControlledProfile = line;
                 line = reader.ReadLine();
                 controlled = Convert.ToBoolean(line);
                 line = reader.ReadLine();
@@ -191,7 +195,8 @@ namespace Thickness_Test_Settings
         public void saveInternalSettings()
         {
             StreamWriter writer = new StreamWriter(internalSettingsFileName);
-            writer.WriteLine(getDefaultProfileName());
+            writer.WriteLine(defaultProfile);
+            writer.WriteLine(defaultControlledProfile);
             writer.WriteLine(controlled);
             writer.WriteLine(controlledProfilesFilePath);            
             writer.WriteLine(defaultSaveLocation);
@@ -217,7 +222,11 @@ namespace Thickness_Test_Settings
             }
             catch
             {
-                if (filePath != "" && filePath != null)
+                if (controlled)
+                {
+                    throw new FileNotFoundException();
+                }
+                else if (filePath != "" && filePath != null)
                 {
                     saveProfiles();
                 }
@@ -299,7 +308,27 @@ namespace Thickness_Test_Settings
 
         public Settings getProfile(String key)
         {
-            Settings newSet = new Settings(profiles[key]);
+            loadProfiles();
+            Settings newSet = new Settings();
+            if (key == "")
+            {
+                return new Settings();
+            }
+            try
+            {
+                newSet = new Settings(profiles[key]);
+            }
+            catch (KeyNotFoundException)
+            {
+                if (controlled)
+                {
+                    defaultControlledProfile = "";
+                }
+                else
+                {
+                    defaultProfile = "";
+                }
+            }
             return newSet;
         }
 
@@ -360,14 +389,24 @@ namespace Thickness_Test_Settings
 
         public string getDefaultProfileName()
         {
-            return defaultProfile;
+            if(controlled){
+                return defaultControlledProfile;
+            }
+            else
+            {
+                return defaultProfile;
+            }            
         }
 
         public void setDefaultProfileName(String name)
         {
             if (name == null)
             {
-                defaultProfile = "";
+                name = "";
+            }
+            if (controlled)
+            {
+                defaultControlledProfile = name;
             }
             else
             {

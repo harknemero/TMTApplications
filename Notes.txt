@@ -2,14 +2,18 @@
 	If zaber controller is switched out to a controller with a different device ID, then program will not work 
 	until the new ID is set in the source code in ZaberCTRL.deviceID. Program must then be recompiled.
 
-
+***IMPORTANT***
+	If the ThicknessTest application ever fails to update data while running a test sequence, consider this:
+	form1.runRowThicknessTestRoutine() is called asynchronously from TestRowButton_Click(). This results in many
+	cross-thread transactions which do not work under certain conditions (ie: while debugging). It's possible this 
+	program may not function correctly on some machines.
 
 
 Zaber Reference
 	1 inch = 25.4 mm
 	237.037 steps per millimeter
 	18062 steps = 3 inches
-	Origin = 327000
+	Origin (default) = 26083 
 	Total Steps (estimate) = 354371
 
 Keyence Reference
