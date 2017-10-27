@@ -5,15 +5,112 @@ Purpose: Regulate solution temperature by adjusting mix speed.
 
 Features:
 
-GUI Components:
-	Manual Control
-		Speed input box - limits input to acceptable range of values.
-		Start/Stop buttons
-	Automatic
-		Temperature input box
-		Start/Stop Buttons
-	Status
-		Displays connection status of thermometer and SMV
-		Displays current solution temperature
-		Displays current speed
-		Displays predicted equilibrium temperature
+	GUI Components:
+		Manual Control
+			Speed input box - limits input to acceptable range of values.
+			Start/Stop buttons - buttons are disabled/enabled appropriately
+		Automatic
+			Temperature input box - bounded by maximum temperature. Low temperatures will result in triggering the alarm.
+			Start/Stop Buttons - buttons are disabled/enabled appropriately
+		Status
+			Displays connection status of thermometer and SMV
+			Displays current solution temperature - Temperature colorized to warn of temperatures above target.
+			Displays current speed
+			Displays predicted equilibrium temperature
+	Potential features:
+		Alarm settings & control **** Assessing alarm level is set up in the GUI and Controller. Needs output device. ****
+			Acceptable range from target settings
+			Warning light control
+			Hazard light & audio alarm control
+
+**REMINDERS**
+	form1.lockdown must be initialized to true when false is no longer needed for testing.
+
+
+VFD RS 485 Modbus Protocol Reference
+
+	These abbreviations will be used throughout this section to illustrate the message structure: 
+	R		Read 
+	W		Write 
+	RS		Response 
+	SA		Slave Address (01 ... F7 hex) 
+	EC		Exception Code 
+	RH		Register Address (high byte) 
+	RL		Register Address (low byte) 
+	DxH		Data (high byte) 
+	DxL		Data (low byte) 
+	CRCH	Cyclic Redundancy Check (high byte) 
+	CRCL	Cyclic Redundancy Check (low byte)
+
+	Exception Codes
+	01		Command rejected; Illegal function 
+	02		Invalid register number 
+	03		Data value is out-of-range 
+	04		Wrong data format 
+	06		Slave device (drive) busy
+
+	Message Structures
+		Read single 16-bit Register
+			R SA 03 RH RL 00 01 CRCH CRCL
+			RS SA 03 02 DH DL CRCH CRCL
+		Write to a single register
+			W SA 06 RH RL DH DL CRCH CRCL
+			RS SA 06 RH RL DH DL CRCH CRCL
+
+	Function Codes
+	01	Read coil status
+	02	Read input status
+	03	Read holding registers
+	04	Read input registers
+	05	Force single coil
+	06	Preset single register
+	07	Read exception status
+	15	Force multiple coils
+	16	Preset multiple registers
+	17	Report slave ID
+
+	Notable Registers
+
+	01 Drive Register **Can only write to this register**
+		# of bit
+		0	01	Quickstop
+		2		Stop		0b00000100
+		3		Start		0b00001000
+		4		Inhibit
+		6		Reverse
+		7		Forward
+		10		DC Braking On
+		11		DC Braking Off
+	24 Command freq 0-500hz
+	25 Actual freq 0-500hz
+	48 Unlock Controls - password: 225
+	49 Unlock Parameters - password: 225
+
+	**No Response Conditions** 
+	The drive will not respond to any message that: 
+	• contains one or more parity errors 
+	• has an invalid CRC value 
+	• was not directed to the drive’s network address. 
+	• This drive does not support the broadcast function of the Modbus protocol. 
+	• is not at least 8 bytes long (minimum required for the supported functions) 
+	• is more than 18 bytes long (maximum allowed before input buffer overflow occurs)
+
+	**Controlling the Drive**
+	The following is the sequence of events to start the drive via the network: 
+	1. Unlock the Drive Control register (#1) by writing a 0 (or the drive password) to Register #48. 
+	2. Control drive operation with various commands to Register #1 (Start, Stop, Forward, Reverse, etc.).  
+		To start the drive, a value of 0x0008 should be sent to Register #1. 
+	3. If the watchdog timer is enabled, keep it from timing out by assuring that a read command (to any register) 
+		is performed within the time specified by P426. 
+	4. Lock Control when drive operations are complete by writing a 0x0002 (i.e. setting the Lock Security bit) 
+		to Register #1
+
+	**Changing Drive Parameters** 
+	The following is the sequence of events for changing drive parameters: 
+	1. Unlock write access to the drive parameters by writing the drive password (P194) to Register #49.  
+		The drive will remain in its normal control mode. 
+	2. Write to all necessary drive configuration or parameters registers. 
+	3. The watchdog timer is not enabled when only the parameters have been unlocked so there is no need to 
+		send repeated read commands to prevent it from timing out. 
+	4. Lock Control when drive operations are complete by writing a 0x0002 (i.e. setting the Lock Security bit) 
+		to Register #1.

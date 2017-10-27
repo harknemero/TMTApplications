@@ -54,6 +54,8 @@ Features
 	Lock profiles - disable settings changes once process is set.
 
 
+Change Requests and Bug Reports
+	If the controlled file doesn't exist at expected location, the program shuts down immediately.
 
 
 

@@ -224,6 +224,8 @@ namespace Thickness_Test_Settings
             {
                 if (controlled)
                 {
+                    controlled = false;
+                    loadProfiles();
                     throw new FileNotFoundException();
                 }
                 else if (filePath != "" && filePath != null)
