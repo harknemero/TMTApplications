@@ -5,6 +5,7 @@ using System.Text;
 using System.IO.Ports;
 using System.Diagnostics;
 using System.Windows.Forms;
+using System.Collections;
 
 namespace HighShearMixController
 {
@@ -102,8 +103,6 @@ namespace HighShearMixController
             bytes.Add(0x01); // Register low byte for Register #1;
             bytes.Add(0x01); // Data high byte
             bytes.Add(0x08); // Data low byte - set bit[3] to 1.
-            bytes.Add(0x00); // ********** required value not yet known **************
-            bytes.Add(0x00); // ********** required value not yet known **************
 
             return result;
         }
@@ -186,19 +185,93 @@ namespace HighShearMixController
         private void lockDrive(bool locking)
         {
             if (locking)
-            {
+            { // Lock drive with 0x_01_06_00_01_00_02
 
             }
             else
-            {
+            { // Unlock drive with 0x_01_06_00_30_00_00
 
             }
         }
 
-        private List<byte> calculateCRC(List<byte> bytes)
+        /*  Calculate CRC through the following steps.
+         *
+         *  bytes concatenated into bit string
+         *  concatenate 16 0's onto bit string
+         *  bit string reversed (significant bit on the right)
+         *  Inside loop that runs
+         *  shift right until 1 is in x^0 position
+         *  XOR with 0xC00280 - 1100 0000 0000 0010 1000 0000 (x^16 + x^15 + x^2 + 1)
+         *
+         *  returns full bit array with CRC bits appended.
+        */
+        private void calculateCRC(List<byte> bytes)
         {
-            short crc;
+            List<byte> tempBytes = new List<byte>(bytes);
+            tempBytes.Add(0x00);
+            tempBytes.Add(0x00);
+            BitArray bits = new BitArray(tempBytes.ToArray());
+
+            System.Console.WriteLine(bits.Count + bits.ToString());
             
+            byte[] divBytes = {0x01, 0x40, 0x03};
+            BitArray divisor = new BitArray(divBytes);
+
+
+            //****** Must Fix - XOR operation is not performed on the end of the bit string, but in the middle. ********
+            for(int count = 0; count < bits.Count - 16; count++)
+            {
+                if (bits.Get(0))
+                {
+                    bits.Xor(divisor);
+                }
+                for (int i = 1; i < bits.Count; i++)
+                {
+                    bits[i - 1] = bits[i];
+                }
+                bits[bits.Count - 1] = false;
+            }
+            
+            byte[] crc = ToByteArray(bits);
+
+            bytes.Add(crc[0]);
+            bytes.Add(crc[1]);            
+            
+        }
+
+        private void reverse(BitArray array)
+        {
+            int length = array.Length;
+            int mid = (length / 2);
+
+            for (int i = 0; i < mid; i++)
+            {
+                bool bit = array[i];
+                array[i] = array[length - i - 1];
+                array[length - i - 1] = bit;
+            }
+        }
+
+        private byte[] ToByteArray(this BitArray bits)
+        {
+            int numBytes = bits.Count / 8;
+            if (bits.Count % 8 != 0) numBytes++;
+
+            byte[] bytes = new byte[numBytes];
+            int byteIndex = 0, bitIndex = 0;
+
+            for (int i = 0; i < bits.Count; i++)
+            {
+                if (bits[i])
+                    bytes[byteIndex] |= (byte)(1 << (7 - bitIndex));
+
+                bitIndex++;
+                if (bitIndex == 8)
+                {
+                    bitIndex = 0;
+                    byteIndex++;
+                }
+            }
 
             return bytes;
         }
