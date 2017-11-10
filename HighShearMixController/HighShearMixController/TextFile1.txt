@@ -60,13 +60,13 @@ VFD RS 485 Modbus Protocol Reference
 	Function Codes
 	01	Read coil status
 	02	Read input status
-	03	Read holding registers
-	04	Read input registers
+	03	Read holding registers			// This is supported
+	04	Read input registers			// This is supported
 	05	Force single coil
-	06	Preset single register
+	06	Preset single register			// This is supported
 	07	Read exception status
 	15	Force multiple coils
-	16	Preset multiple registers
+	16	Preset multiple registers		// This is supported
 	17	Report slave ID
 
 	Notable Registers

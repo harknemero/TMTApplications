@@ -31,6 +31,8 @@ namespace HighShearMixController
             textBox2.Text = Properties.Settings.Default.TargetTemperature + "";
 
             updateStatus();
+
+            //runPoller(); // ******** renders debugger unusable - crossthread transactions
         }
 
 
