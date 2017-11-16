@@ -38,8 +38,6 @@ namespace HighShearMixController
             manualSpeed = 0;
             Manual = false;
             Automatic = false;
-            ThermConn = checkThermConn();
-            DriveConn = checkDriveConn();
         }
 
         // Start Mixer
@@ -150,6 +148,11 @@ namespace HighShearMixController
             return alarmLevel;
         }
 
+        public string getDriveWarning()
+        {
+            return drive.Warning;
+        }
+
         public bool checkThermConn()
         {
             bool result = therm.isConnected();
@@ -160,10 +163,14 @@ namespace HighShearMixController
 
         public bool checkDriveConn()
         {
+            if(drive == null)
+            {
+                return drive.openDrive();
+            }
             bool result = drive.isConnected();
-            DriveConn = true;
+            DriveConn = result;
 
-            return true; // ********************************************* for testing
+            return result; // ********************************************* for testing
         }
     }
 }

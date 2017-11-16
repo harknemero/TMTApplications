@@ -16,6 +16,7 @@ namespace HighShearMixController
         private bool portBusy;
         private bool settingLock;
         private byte[] rsData;
+        private string warning;
 
         private static string idResponse = ""; // ******* This needs to be determined *******
         private static byte networkAddress = 0x01;
@@ -23,6 +24,8 @@ namespace HighShearMixController
         private static byte readInputReg = 0x04;
         private static byte writeSingleReg = 0x06;
         private static byte[] drivePassword = {0x00, 0x00}; // For locking and unlocking register/parameter access
+
+        public string Warning { get => warning; set => warning = value; }
 
         public VFDriveControl()
         {
@@ -37,11 +40,12 @@ namespace HighShearMixController
             drive.DtrEnable = false; 
             drive.Handshake = Handshake.None;
             drive.NewLine = "\r\n";
-            drive.ReadTimeout = 1000;    //Timeout after 1 second
+            drive.ReadTimeout = 100;    //Timeout after 1 second
             openDrive(); // ********** for testing purposes ***********
         }
         public bool openDrive()
         {
+            bool result = false;
             portBusy = false;
             drive = new SerialPort();
             drive.BaudRate = 115200;
@@ -52,7 +56,7 @@ namespace HighShearMixController
             drive.DtrEnable = false;
             drive.Handshake = Handshake.None;
             drive.NewLine = "\r\n";
-            drive.ReadTimeout = 1000;    //Timeout after 1 second
+            drive.ReadTimeout = 100;    //Timeout after 1 second
             string[] ports = SerialPort.GetPortNames();
 
             foreach (string port in ports)
@@ -63,22 +67,7 @@ namespace HighShearMixController
                     
                     if (!drive.IsOpen)
                     {
-                        drive.Open();
-                        drive.DiscardInBuffer();
-                        // Set security bit on drive register.
-                        drive.Write(new byte[] { 0x01, 0x06, 0x00, 0x01, 0x00, 0x02, 0x59, 0xCB }, 0, 8);
-                        System.Threading.Thread.Sleep(100);
-                        rsData = getResponse(8);
-                        System.Threading.Thread.Sleep(100);
-                        /*
-                        rsData = rsData.Substring(rsData.Length - 5, 5);
-                        if (rsData == idResponse)
-                        {
-                            // any initialization?
-                            return (true);
-                        }
-                        */
-                        drive.Close();
+                        result = isConnected();
                     }
                 }
                 catch (Exception ex)
@@ -87,7 +76,7 @@ namespace HighShearMixController
                     drive.Close();
                 }
             }
-            return (false);
+            return (result);
         }
 
         // Sends pre-built command to VFDrive.
@@ -95,17 +84,22 @@ namespace HighShearMixController
         {
             bool result = false;            
 
-            //calculateCRC(bytes);
+            //calculateCRC(bytes); Non-functional until correct divisor is determined.
             drive.Open();
             drive.Write(bytes.ToArray(), 0, bytes.Count);
 
             if (!settingLock)
             {
-                rsData = getResponse((drive.ReadExisting()).Length);
-                if (rsData.Length > 4)
+                rsData = new byte[] { };
+                try
                 {
-                    System.Console.WriteLine(rsData[0] + rsData[1] + rsData[2] + rsData[3] + rsData[4] + "");
+                    rsData = getResponse((drive.ReadExisting()).Length);
                 }
+                catch
+                {
+                    
+                }
+                
             }
             drive.DiscardInBuffer();
 
@@ -131,6 +125,76 @@ namespace HighShearMixController
                 byte[] emptyBytes = { };
                 return emptyBytes;
             }
+        }
+
+        /*
+         * Response Checker
+         * Compares command with response.
+         * Checks command type to determine expected byte length.
+        */
+        private bool checkResponse(byte[] command, byte[] response)
+        {
+            bool result = true;
+            StringBuilder sb = new StringBuilder();
+            sb.Append("");
+            
+            switch (command[1])
+            {
+                // write response
+                case 0x06:
+                    if (command.Length != 8 || response.Length != 8)
+                    {
+                        result = false;
+                        break;
+                    }
+                    for(int count = 0; count < 8; count++)
+                    {
+                        if(command[count] != response[count])
+                        {
+                            result = false;
+                            break;
+                        }
+                    }
+                    break;
+                
+                // Read response
+                case 0x03: result = false;
+                    break;
+
+                case 0x53: result = false; // Error response for read
+                    break;
+
+                case 0x56: result = false; // Error response for write
+                    break;
+
+                default: result = false;
+                    break;
+
+            }
+
+            if (!result)
+            {
+                sb.Append("Command Failed.\nCommand: ");
+                for(int count = 0; count < command.Length; count++)
+                {
+                    sb.Append(command[count]);
+                }
+                sb.Append("\nResponse: ");
+                if(response.Length == 0)
+                {
+                    sb.Append("No Response");
+                }
+                else
+                {
+                    for(int count = 0; count < response.Length; count++)
+                    {
+                        sb.Append(response[count]);
+                    }
+                }
+            }
+            Warning = sb.ToString();
+
+            return result;
         }
 
         /*  Start Mixer.
@@ -209,7 +273,34 @@ namespace HighShearMixController
         public bool isConnected()
         {
             bool result = false;
+            try
+            {
+                drive.Open();
+                drive.DiscardInBuffer();
+            }
+            catch
+            {
+                Warning = "Unable to reach " + drive.PortName;
+                return false;
+            }
 
+            // Set security bit on drive register.
+            byte[] testByte = new byte[] { 0x01, 0x06, 0x00, 0x01, 0x00, 0x02, 0x59, 0xCB };
+            drive.Write(testByte, 0, 8);
+            System.Threading.Thread.Sleep(100);
+            try
+            {
+                rsData = getResponse(8);
+            }
+            catch { }
+
+            System.Threading.Thread.Sleep(100);
+            drive.Close();
+
+            if (rsData.Length > 0)
+            {
+                return checkResponse(testByte, rsData);
+            }
             return result;
         }
 
@@ -302,7 +393,10 @@ namespace HighShearMixController
             settingLock = false;
         }
 
-        /*  Calculate CRC through the following steps.
+        /*  
+         *  Non-Functional until correct divisor is determined.
+         *  
+         *  Calculate CRC through the following steps.
          *
          *  bytes concatenated into bit string
          *  concatenate 16 0's onto bit string
@@ -316,11 +410,11 @@ namespace HighShearMixController
         private void calculateCRC(List<byte> bytes)
         {
             BitArray bits = new BitArray(byteToBit(bytes.ToArray()));
-            
-            byte[] divBytes = {0xC0, 0x02, 0x80, 0x00, 0x00, 0x00};            
+
+            byte[] divBytes = { 0xA0, 0x01, 0x00, 0x00, 0x00, 0x00 };//{0xC0, 0x02, 0x80, 0x00, 0x00, 0x00};            
             BitArray divisor = new BitArray(byteToBit(divBytes.ToArray()));
 
-            for (int count = 0; count < bits.Count - 17; count++)
+            for (int count = 0; count < bits.Count - 16; count++)
             {
                 if (bits.Get(0))
                 {
@@ -347,8 +441,8 @@ namespace HighShearMixController
 
             byte[] crc = ToByteArray(bits);
 
-            bytes.Add(crc[0]);
-            bytes.Add(crc[1]);            
+            //bytes.Add(crc[0]);
+            //bytes.Add(crc[1]);            
             
         }
 

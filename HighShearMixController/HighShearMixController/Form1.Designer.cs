@@ -30,7 +30,11 @@
         {
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.label10 = new System.Windows.Forms.Label();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
+            this.labelEqSpeed = new System.Windows.Forms.Label();
+            this.labelSpeed = new System.Windows.Forms.Label();
+            this.labelTemp = new System.Windows.Forms.Label();
             this.label9 = new System.Windows.Forms.Label();
             this.label8 = new System.Windows.Forms.Label();
             this.label7 = new System.Windows.Forms.Label();
@@ -48,10 +52,7 @@
             this.label2 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.textBox1 = new System.Windows.Forms.TextBox();
-            this.labelTemp = new System.Windows.Forms.Label();
-            this.labelSpeed = new System.Windows.Forms.Label();
-            this.labelEqSpeed = new System.Windows.Forms.Label();
-            this.label10 = new System.Windows.Forms.Label();
+            this.label11 = new System.Windows.Forms.Label();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -71,6 +72,7 @@
             // 
             // tabPage1
             // 
+            this.tabPage1.Controls.Add(this.label11);
             this.tabPage1.Controls.Add(this.label10);
             this.tabPage1.Controls.Add(this.groupBox3);
             this.tabPage1.Controls.Add(this.groupBox2);
@@ -81,6 +83,15 @@
             this.tabPage1.Size = new System.Drawing.Size(624, 314);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.UseVisualStyleBackColor = true;
+            // 
+            // label10
+            // 
+            this.label10.AutoSize = true;
+            this.label10.Location = new System.Drawing.Point(345, 192);
+            this.label10.Name = "label10";
+            this.label10.Size = new System.Drawing.Size(71, 13);
+            this.label10.TabIndex = 3;
+            this.label10.Text = "Alarm Level 0";
             // 
             // groupBox3
             // 
@@ -98,6 +109,44 @@
             this.groupBox3.TabIndex = 2;
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "System Status";
+            // 
+            // labelEqSpeed
+            // 
+            this.labelEqSpeed.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.labelEqSpeed.AutoSize = true;
+            this.labelEqSpeed.ForeColor = System.Drawing.Color.Red;
+            this.labelEqSpeed.Location = new System.Drawing.Point(232, 66);
+            this.labelEqSpeed.Name = "labelEqSpeed";
+            this.labelEqSpeed.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.labelEqSpeed.Size = new System.Drawing.Size(29, 13);
+            this.labelEqSpeed.TabIndex = 7;
+            this.labelEqSpeed.Text = "0 Hz";
+            this.labelEqSpeed.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            // 
+            // labelSpeed
+            // 
+            this.labelSpeed.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.labelSpeed.AutoSize = true;
+            this.labelSpeed.ForeColor = System.Drawing.Color.Red;
+            this.labelSpeed.Location = new System.Drawing.Point(232, 44);
+            this.labelSpeed.Name = "labelSpeed";
+            this.labelSpeed.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.labelSpeed.Size = new System.Drawing.Size(29, 13);
+            this.labelSpeed.TabIndex = 6;
+            this.labelSpeed.Text = "0 Hz";
+            this.labelSpeed.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            // 
+            // labelTemp
+            // 
+            this.labelTemp.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.labelTemp.AutoSize = true;
+            this.labelTemp.ForeColor = System.Drawing.Color.Red;
+            this.labelTemp.Location = new System.Drawing.Point(208, 22);
+            this.labelTemp.Name = "labelTemp";
+            this.labelTemp.Size = new System.Drawing.Size(53, 13);
+            this.labelTemp.TabIndex = 5;
+            this.labelTemp.Text = "Unknown";
+            this.labelTemp.TextAlign = System.Drawing.ContentAlignment.TopRight;
             // 
             // label9
             // 
@@ -268,52 +317,14 @@
             this.textBox1.TabIndex = 0;
             this.textBox1.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
             // 
-            // labelTemp
+            // label11
             // 
-            this.labelTemp.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.labelTemp.AutoSize = true;
-            this.labelTemp.ForeColor = System.Drawing.Color.Red;
-            this.labelTemp.Location = new System.Drawing.Point(208, 22);
-            this.labelTemp.Name = "labelTemp";
-            this.labelTemp.Size = new System.Drawing.Size(53, 13);
-            this.labelTemp.TabIndex = 5;
-            this.labelTemp.Text = "Unknown";
-            this.labelTemp.TextAlign = System.Drawing.ContentAlignment.TopRight;
-            // 
-            // labelSpeed
-            // 
-            this.labelSpeed.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.labelSpeed.AutoSize = true;
-            this.labelSpeed.ForeColor = System.Drawing.Color.Red;
-            this.labelSpeed.Location = new System.Drawing.Point(232, 44);
-            this.labelSpeed.Name = "labelSpeed";
-            this.labelSpeed.RightToLeft = System.Windows.Forms.RightToLeft.No;
-            this.labelSpeed.Size = new System.Drawing.Size(29, 13);
-            this.labelSpeed.TabIndex = 6;
-            this.labelSpeed.Text = "0 Hz";
-            this.labelSpeed.TextAlign = System.Drawing.ContentAlignment.TopRight;
-            // 
-            // labelEqSpeed
-            // 
-            this.labelEqSpeed.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.labelEqSpeed.AutoSize = true;
-            this.labelEqSpeed.ForeColor = System.Drawing.Color.Red;
-            this.labelEqSpeed.Location = new System.Drawing.Point(232, 66);
-            this.labelEqSpeed.Name = "labelEqSpeed";
-            this.labelEqSpeed.RightToLeft = System.Windows.Forms.RightToLeft.No;
-            this.labelEqSpeed.Size = new System.Drawing.Size(29, 13);
-            this.labelEqSpeed.TabIndex = 7;
-            this.labelEqSpeed.Text = "0 Hz";
-            this.labelEqSpeed.TextAlign = System.Drawing.ContentAlignment.TopRight;
-            // 
-            // label10
-            // 
-            this.label10.AutoSize = true;
-            this.label10.Location = new System.Drawing.Point(345, 192);
-            this.label10.Name = "label10";
-            this.label10.Size = new System.Drawing.Size(71, 13);
-            this.label10.TabIndex = 3;
-            this.label10.Text = "Alarm Level 0";
+            this.label11.AutoSize = true;
+            this.label11.ForeColor = System.Drawing.Color.Red;
+            this.label11.Location = new System.Drawing.Point(17, 192);
+            this.label11.Name = "label11";
+            this.label11.Size = new System.Drawing.Size(0, 13);
+            this.label11.TabIndex = 4;
             // 
             // Form1
             // 
@@ -362,6 +373,7 @@
         private System.Windows.Forms.Label labelSpeed;
         private System.Windows.Forms.Label labelTemp;
         private System.Windows.Forms.Label label10;
+        private System.Windows.Forms.Label label11;
     }
 }
 

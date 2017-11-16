@@ -32,7 +32,7 @@ namespace HighShearMixController
 
             updateStatus();
 
-            //runPoller(); // ******** renders debugger unusable - crossthread transactions
+            runPoller(); // ******** renders debugger unusable - crossthread transactions
         }
 
 
@@ -82,6 +82,7 @@ namespace HighShearMixController
                 label9.ForeColor = Color.Red;
             }
 
+            label11.Text = controller.getDriveWarning();
             controller.setAlarmLevel(decideOverallAlarmLevel());
             updateLockdown();
             decideOverallAlarmLevel();
@@ -300,25 +301,28 @@ namespace HighShearMixController
             BackgroundWorker worker = sender as BackgroundWorker;
             int pollCounter = 0;
             bool driveConn = false;
-            bool thermConn = true;
+            bool thermConn = false;
             while (continuePolling)
             {
                 pollCounter++;
                 System.Threading.Thread.Sleep(Properties.Settings.Default.PollingInterval);
-                driveConn = controller.checkDriveConn();
-                thermConn = controller.checkThermConn();
+                if(driveConn != controller.DriveConn || thermConn != controller.ThermConn)
+                {
+                    updateStatus();
+                }
+
+                if (pollCounter % Properties.Settings.Default.RecordInterval == 0)
+                {
+                    controller.checkDriveConn();
+                    controller.checkThermConn();
+                }
 
                 if (recordingSession && pollCounter % Properties.Settings.Default.RecordInterval == 0)
                 {
-                    if (driveConn)
-                    {
 
-                    }
-                    if (thermConn)
-                    {
-
-                    }
                 }
+
+                label11.Text = pollCounter + "";
 
                 updateStatus();
             }
