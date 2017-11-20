@@ -33,6 +33,7 @@ namespace HighShearMixController
             updateStatus();
 
             runPoller(); // ******** renders debugger unusable - crossthread transactions
+            //button1.Enabled = true; // ********************************************* for testing
         }
 
 
@@ -200,8 +201,8 @@ namespace HighShearMixController
         // Manual start button
         private void button1_Click(object sender, EventArgs e)
         {
-            controller.startDrive();
             controller.Manual = true;
+            controller.startDrive();            
             groupBox1.BackColor = Color.LightGray;
             updateLockdown();
         }
@@ -209,8 +210,8 @@ namespace HighShearMixController
         // Manual stop button
         private void button2_Click(object sender, EventArgs e)
         {
-            controller.stopDrive();
             controller.Manual = false;
+            controller.stopDrive();            
             groupBox1.BackColor = Color.Transparent;
             updateLockdown();
         }
@@ -218,8 +219,8 @@ namespace HighShearMixController
         // Automatic start button
         private void button3_Click(object sender, EventArgs e)
         {
-            controller.startDrive();
             controller.Automatic = true;
+            controller.startDrive();
             groupBox2.BackColor = Color.LightGray;
             updateLockdown();
             recordingSession = true;
@@ -228,8 +229,8 @@ namespace HighShearMixController
         // Automatic stop button
         private void button4_Click(object sender, EventArgs e)
         {
-            controller.stopDrive();
             controller.Automatic = false;
+            controller.stopDrive();
             groupBox2.BackColor = Color.Transparent;
             updateLockdown();
             recordingSession = false;
@@ -244,6 +245,10 @@ namespace HighShearMixController
                 {
                     if (Convert.ToDouble(textBox1.Text) >= 1 && Convert.ToDouble(textBox1.Text) < Properties.Settings.Default.MaxSpeed)
                     {
+                        if(Properties.Settings.Default.ManualSpeed != Convert.ToDouble(textBox1.Text))
+                        {
+                            controller.ManualSpeedChanged = true;
+                        }
                         Properties.Settings.Default.ManualSpeed = Convert.ToDouble(textBox1.Text);
                     }
                     else
@@ -269,6 +274,10 @@ namespace HighShearMixController
                 {
                     if (Convert.ToDouble(textBox2.Text) <= Properties.Settings.Default.MaxTargetTemp)
                     {
+                        if (Properties.Settings.Default.TargetTemperature != Convert.ToDouble(textBox2.Text))
+                        {
+                            controller.TargetTempChanged = true;
+                        }
                         Properties.Settings.Default.TargetTemperature = Convert.ToDouble(textBox2.Text);
                     }
                     else
@@ -319,8 +328,10 @@ namespace HighShearMixController
 
                 if (recordingSession && pollCounter % Properties.Settings.Default.RecordInterval == 0)
                 {
-
+                    controller.calculateEqSpeed();
+                    controller.setSpeed();
                 }
+                
 
                 label11.Text = pollCounter + "";
 

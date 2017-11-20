@@ -84,7 +84,7 @@ namespace HighShearMixController
         {
             bool result = false;            
 
-            //calculateCRC(bytes); Non-functional until correct divisor is determined.
+            calculateCRC(bytes); //Non-functional until correct divisor is determined.
             drive.Open();
             drive.Write(bytes.ToArray(), 0, bytes.Count);
 
@@ -210,29 +210,11 @@ namespace HighShearMixController
             //0x_01_06_00_01_00_08           01 06 00 01 00 08 D9 CC
             bytes.Add(networkAddress); bytes.Add(writeSingleReg); bytes.Add(0x00); 
             bytes.Add(0x01); bytes.Add(0x00); bytes.Add(0x08); // Data low byte - set bit[3] to 1.
-            bytes.Add(0xD9); bytes.Add(0xCC); // CRC bytes - pre calculated
+            //bytes.Add(0xD9); bytes.Add(0xCC); // CRC bytes - pre calculated
 
             unlockDrive();
             sendCommand(bytes);
             lockDriveAndParam();
-
-            /*// ************* testing
-
-            //  01 06 00 30 00 00 89 C5     01 06 00 01 00 08 D9 CC     01 06 00 01 00 04 D9 C9     01 06 00 01 00 02 59 CB
-            drive.Open();
-            System.Threading.Thread.Sleep(100);
-            drive.Write(new byte[] { 0x01, 0x06, 0x00, 0x01, 0x00, 0x02, 0x59, 0xCB }, 0, 8);
-            System.Threading.Thread.Sleep(100);
-            drive.Write(new byte[] { 0x01, 0x06, 0x00, 0x30, 0x00, 0x00, 0x89, 0xC5 }, 0, 8);
-            System.Threading.Thread.Sleep(100);
-            drive.Write(new byte[] { 0x01, 0x06, 0x00, 0x01, 0x00, 0x08, 0xD9, 0xCC }, 0, 8);
-            System.Threading.Thread.Sleep(1000);
-            drive.Write(new byte[] { 0x01, 0x06, 0x00, 0x01, 0x00, 0x04, 0xD9, 0xC9 }, 0, 8);
-            System.Threading.Thread.Sleep(100);
-            drive.Write(new byte[] { 0x01, 0x06, 0x00, 0x01, 0x00, 0x02, 0x59, 0xCB }, 0, 8);
-            System.Threading.Thread.Sleep(100);
-            drive.Close();
-            // ************* /testing*/
 
             return result;
         }
@@ -248,7 +230,7 @@ namespace HighShearMixController
             //0x_01_06_00_01_00_04
             bytes.Add(networkAddress); bytes.Add(writeSingleReg); bytes.Add(0x00);
             bytes.Add(0x01); bytes.Add(0x00); bytes.Add(0x04); // set bit[2] in reg1 to stop
-            bytes.Add(0xD9); bytes.Add(0xC9); // CRC bytes - pre calculated
+            //bytes.Add(0xD9); bytes.Add(0xC9); // CRC bytes - pre calculated
 
             unlockDrive();
             sendCommand(bytes);
@@ -260,9 +242,25 @@ namespace HighShearMixController
         /*  Start Mixer.
          *     
         */
-        public bool setSpeed(double speed)
+        public bool setSpeed(double s)
         {
             bool result = false;
+            ushort speed = (ushort)(s * 10);
+            if(speed < 0)
+            {
+                speed = 0;
+            }
+            if(speed > 500)
+            {
+                speed = 500;
+            }
+            Byte[] byteSpeed = BitConverter.GetBytes(speed);
+            List<byte> bytes = new List<byte>();
+            //0x_01_06_00_01
+            bytes.Add(networkAddress); bytes.Add(writeSingleReg); bytes.Add(0x00);
+            bytes.Add(0x01); bytes.Add(byteSpeed[0]); bytes.Add(byteSpeed[1]);
+
+            unlockDrive();
 
             return result;
         }
@@ -353,7 +351,7 @@ namespace HighShearMixController
             // Unlock drive with 0x_01_06_00_30_(p[0])_(p[1])       01 06 00 30 00 00 89 C5
             bytes.Add(networkAddress); bytes.Add(writeSingleReg); bytes.Add(0x00);
             bytes.Add(0x30); bytes.Add(drivePassword[0]); bytes.Add(drivePassword[1]);
-            bytes.Add(0x89); bytes.Add(0xC5); // CRC bytes - pre calculated
+            // bytes.Add(0x89); bytes.Add(0xC5); // CRC bytes - pre calculated
 
             settingLock = true;
             sendCommand(bytes);
@@ -370,7 +368,7 @@ namespace HighShearMixController
             // Unlock drive with 0x_01_06_00_31_(p[0])_(p[1])
             bytes.Add(networkAddress); bytes.Add(writeSingleReg); bytes.Add(0x00);
             bytes.Add(0x31); bytes.Add(drivePassword[0]); bytes.Add(drivePassword[1]);
-            bytes.Add(0xD8); bytes.Add(0x05); // CRC bytes - pre calculated
+            //bytes.Add(0xD8); bytes.Add(0x05); // CRC bytes - pre calculated
 
             settingLock = true;
             sendCommand(bytes);
@@ -386,12 +384,58 @@ namespace HighShearMixController
             // Lock drive with 0x_01_06_00_01_00_02
             bytes.Add(networkAddress); bytes.Add(writeSingleReg); bytes.Add(0x00);
             bytes.Add(0x01); bytes.Add(0x00); bytes.Add(0x02);
-            bytes.Add(0x59); bytes.Add(0xCB); // CRC bytes - pre calculated
+            //bytes.Add(0x59); bytes.Add(0xCB); // CRC bytes - pre calculated
 
             settingLock = true;
             sendCommand(bytes);
             settingLock = false;
         }
+
+        /*
+         * 3rd times a charm? not from the looks of it...
+         * 
+         *
+        private void calculateCRC(List<byte> bytes)
+        {
+            byte[] crc = { 0xFF, 0xFF };
+            byte[] xorVal = { 0xA0, 0x01 };
+            BitArray xorBits = byteToBit(xorVal);
+
+            for (int bnum = 0; bnum < bytes.Count; bnum++)
+            {
+                crc[1] = (byte)(crc[1] ^ bytes[bnum]);
+                BitArray bits = byteToBit(crc);
+                for (int count = 0; count < 8; count++)
+                {
+                    // Shift BitArray one space right.
+                    
+                    for (int i = 15; i >= 1; i--)
+                    {
+                        bits[i] = bits[i - 1];
+                    }
+                    bits[0] = false;
+                    
+                    if (bits.Get(15))
+                    {
+                        bool bit1;
+                        bool bit2;
+                        bool xor;
+                        for (int xorCount = 0; xorCount < 16; xorCount++)
+                        {
+                            bit1 = bits.Get(xorCount);
+                            bit2 = xorBits.Get(xorCount);
+                            xor = bit1 ^ bit2;
+                            bits.Set(xorCount, xor);
+                        }
+                        byte[] t1 = ToByteArray(bits); // For testing **************
+                        byte[] t2 = ToByteArray(xorBits); // For testing **********************
+                    }                    
+                }
+                crc = ToByteArray(bits);
+            }
+            bytes.Add(crc[1]);
+            bytes.Add(crc[0]);
+        } //*/
 
         /*  
          *  Non-Functional until correct divisor is determined.
@@ -406,18 +450,20 @@ namespace HighShearMixController
          *      XOR with 0xC00280 - 1100 0000 0000 0010 1000 0000 (x^16 + x^15 + x^2 + 1)
          *
          *  returns full bit array with CRC bits appended.
-        */
+        *
         private void calculateCRC(List<byte> bytes)
         {
             BitArray bits = new BitArray(byteToBit(bytes.ToArray()));
 
-            byte[] divBytes = { 0xA0, 0x01, 0x00, 0x00, 0x00, 0x00 };//{0xC0, 0x02, 0x80, 0x00, 0x00, 0x00};            
+            byte[] divBytes = { 0xFF, 0xFF, 0xFF };//{0xC0, 0x02, 0x80, 0x00, 0x00, 0x00};            
             BitArray divisor = new BitArray(byteToBit(divBytes.ToArray()));
 
-            for (int count = 0; count < bits.Count - 16; count++)
+            int xorOps = 0;
+            for (int count = 0; count < bytes.Count * 8; count++)
             {
                 if (bits.Get(0))
                 {
+                    xorOps++;
                     bool bit1;
                     bool bit2;
                     bool xor;
@@ -441,17 +487,73 @@ namespace HighShearMixController
 
             byte[] crc = ToByteArray(bits);
 
-            //bytes.Add(crc[0]);
-            //bytes.Add(crc[1]);            
+            bytes.Add(crc[0]);
+            bytes.Add(crc[1]);
+            xorOps += 0;
             
-        }
+        } //*/
+
+        /*
+         * 
+         */
+        private void calculateCRC(List<byte> bytes)
+        {
+            byte[] message = bytes.ToArray();
+            byte[] CRC = new byte[2];
+            byte[] CRCtemp = new byte[2];
+            byte[] table = { 0x00, 0x00, 0xC0, 0xC1, 0xC1, 0x81, 0x01, 0x40, 0xC3, 0x01, 0x03, 0xC0,
+                0x02, 0x80, 0xC2, 0x41, 0xC6, 0x01, 0x06, 0xC0, 0x07, 0x80, 0xC7, 0x41, 0x05, 0x00, 0xC5, 0xC1,
+                0xC4, 0x81, 0x04, 0x40, 0xCC, 0x01, 0x0C, 0xC0, 0x0D, 0x80, 0xCD, 0x41, 0x0F, 0x00, 0xCF, 0xC1,
+                0xCE, 0x81, 0x0E, 0x40, 0x0A, 0x00, 0xCA, 0xC1, 0xCB, 0x81, 0x0B, 0x40, 0xC9, 0x01, 0x09, 0xC0,
+                0x08, 0x80, 0xC8, 0x41, 0xD8, 0x01, 0x18, 0xC0, 0x19, 0x80, 0xD9, 0x41, 0x1B, 0x00, 0xDB, 0xC1,
+                0xDA, 0x81, 0x1A, 0x40, 0x1E, 0x00, 0xDE, 0xC1, 0xDF, 0x81, 0x1F, 0x40, 0xDD, 0x01, 0x1D, 0xC0,
+                0x1C, 0x80, 0xDC, 0x41, 0x14, 0x00, 0xD4, 0xC1, 0xD5, 0x81, 0x15, 0x40, 0xD7, 0x01, 0x17, 0xC0,
+                0x16, 0x80, 0xD6, 0x41, 0xD2, 0x01, 0x12, 0xC0, 0x13, 0x80, 0xD3, 0x41, 0x11, 0x00, 0xD1, 0xC1,
+                0xD0, 0x81, 0x10, 0x40, 0xF0, 0x01, 0x30, 0xC0, 0x31, 0x80, 0xF1, 0x41, 0x33, 0x00, 0xF3, 0xC1,
+                0xF2, 0x81, 0x32, 0x40, 0x36, 0x00, 0xF6, 0xC1, 0xF7, 0x81, 0x37, 0x40, 0xF5, 0x01, 0x35, 0xC0,
+                0x34, 0x80, 0xF4, 0x41, 0x3C, 0x00, 0xFC, 0xC1, 0xFD, 0x81, 0x3D, 0x40, 0xFF, 0x01, 0x3F, 0xC0,
+                0x3E, 0x80, 0xFE, 0x41, 0xFA, 0x01, 0x3A, 0xC0, 0x3B, 0x80, 0xFB, 0x41, 0x39, 0x00, 0xF9, 0xC1,
+                0xF8, 0x81, 0x38, 0x40, 0x28, 0x00, 0xE8, 0xC1, 0xE9, 0x81, 0x29, 0x40, 0xEB, 0x01, 0x2B, 0xC0,
+                0x2A, 0x80, 0xEA, 0x41, 0xEE, 0x01, 0x2E, 0xC0, 0x2F, 0x80, 0xEF, 0x41, 0x2D, 0x00, 0xED, 0xC1,
+                0xEC, 0x81, 0x2C, 0x40, 0xE4, 0x01, 0x24, 0xC0, 0x25, 0x80, 0xE5, 0x41, 0x27, 0x00, 0xE7, 0xC1,
+                0xE6, 0x81, 0x26, 0x40, 0x22, 0x00, 0xE2, 0xC1, 0xE3, 0x81, 0x23, 0x40, 0xE1, 0x01, 0x21, 0xC0,
+                0x20, 0x80, 0xE0, 0x41, 0xA0, 0x01, 0x60, 0xC0, 0x61, 0x80, 0xA1, 0x41, 0x63, 0x00, 0xA3, 0xC1,
+                0xA2, 0x81, 0x62, 0x40, 0x66, 0x00, 0xA6, 0xC1, 0xA7, 0x81, 0x67, 0x40, 0xA5, 0x01, 0x65, 0xC0,
+                0x64, 0x80, 0xA4, 0x41, 0x6C, 0x00, 0xAC, 0xC1, 0xAD, 0x81, 0x6D, 0x40, 0xAF, 0x01, 0x6F, 0xC0,
+                0x6E, 0x80, 0xAE, 0x41, 0xAA, 0x01, 0x6A, 0xC0, 0x6B, 0x80, 0xAB, 0x41, 0x69, 0x00, 0xA9, 0xC1,
+                0xA8, 0x81, 0x68, 0x40, 0x78, 0x00, 0xB8, 0xC1, 0xB9, 0x81, 0x79, 0x40, 0xBB, 0x01, 0x7B, 0xC0,
+                0x7A, 0x80, 0xBA, 0x41, 0xBE, 0x01, 0x7E, 0xC0, 0x7F, 0x80, 0xBF, 0x41, 0x7D, 0x00, 0xBD, 0xC1,
+                0xBC, 0x81, 0x7C, 0x40, 0xB4, 0x01, 0x74, 0xC0, 0x75, 0x80, 0xB5, 0x41, 0x77, 0x00, 0xB7, 0xC1,
+                0xB6, 0x81, 0x76, 0x40, 0x72, 0x00, 0xB2, 0xC1, 0xB3, 0x81, 0x73, 0x40, 0xB1, 0x01, 0x71, 0xC0,
+                0x70, 0x80, 0xB0, 0x41, 0x50, 0x00, 0x90, 0xC1, 0x91, 0x81, 0x51, 0x40, 0x93, 0x01, 0x53, 0xC0,
+                0x52, 0x80, 0x92, 0x41, 0x96, 0x01, 0x56, 0xC0, 0x57, 0x80, 0x97, 0x41, 0x55, 0x00, 0x95, 0xC1,
+                0x94, 0x81, 0x54, 0x40, 0x9C, 0x01, 0x5C, 0xC0, 0x5D, 0x80, 0x9D, 0x41, 0x5F, 0x00, 0x9F, 0xC1,
+                0x9E, 0x81, 0x5E, 0x40, 0x5A, 0x00, 0x9A, 0xC1, 0x9B, 0x81, 0x5B, 0x40, 0x99, 0x01, 0x59, 0xC0,
+                0x58, 0x80, 0x98, 0x41, 0x88, 0x01, 0x48, 0xC0, 0x49, 0x80, 0x89, 0x41, 0x4B, 0x00, 0x8B, 0xC1,
+                0x8A, 0x81, 0x4A, 0x40, 0x4E, 0x00, 0x8E, 0xC1, 0x8F, 0x81, 0x4F, 0x40, 0x8D, 0x01, 0x4D, 0xC0,
+                0x4C, 0x80, 0x8C, 0x41, 0x44, 0x00, 0x84, 0xC1, 0x85, 0x81, 0x45, 0x40, 0x87, 0x01, 0x47, 0xC0,
+                0x46, 0x80, 0x86, 0x41, 0x82, 0x01, 0x42, 0xC0, 0x43, 0x80, 0x83, 0x41, 0x41, 0x00, 0x81, 0xC1,
+                0x80, 0x81, 0x40, 0x40, };
+            CRC[0] = 0xff; CRC[1] = 0xff;
+            for(int count = 0; count < message.Length; count++)
+            {
+                CRCtemp[0] = CRC[0];
+                CRCtemp[1] = CRC[1];
+                CRC[0] = table[2 * (message[count] ^ CRCtemp[1])];
+                CRC[1] = (byte)(CRCtemp[0] ^ table[(2 * (message[count] ^ CRCtemp[1])) + 1]);
+            }
+            bytes.Add(CRC[1]);
+            bytes.Add(CRC[0]);
+            return;
+        }//*/
 
         /*
          *  Creates BitArray with bits in descending order from bytes
          *  This is to correct for the fact that BitArray(byte[]) reverses the bits in each byte.
         */
         private BitArray byteToBit(byte[] bytes)
-        {
+        {           
+
             BitArray bits = new BitArray(bytes); // Now backward... we don't want that.
             byte[] reverseBytes = ToByteArray(bits);
             bits = new BitArray(reverseBytes); // Now forward again. That's better.
