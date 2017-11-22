@@ -48,12 +48,13 @@
             this.button4 = new System.Windows.Forms.Button();
             this.textBox2 = new System.Windows.Forms.TextBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.label12 = new System.Windows.Forms.Label();
             this.button2 = new System.Windows.Forms.Button();
             this.button1 = new System.Windows.Forms.Button();
             this.label2 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.textBox1 = new System.Windows.Forms.TextBox();
-            this.label12 = new System.Windows.Forms.Label();
+            this.button5 = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -105,6 +106,7 @@
             // 
             // groupBox3
             // 
+            this.groupBox3.Controls.Add(this.button5);
             this.groupBox3.Controls.Add(this.labelEqSpeed);
             this.groupBox3.Controls.Add(this.labelSpeed);
             this.groupBox3.Controls.Add(this.labelTemp);
@@ -281,6 +283,15 @@
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Manual Control";
             // 
+            // label12
+            // 
+            this.label12.AutoSize = true;
+            this.label12.Location = new System.Drawing.Point(120, 54);
+            this.label12.Name = "label12";
+            this.label12.Size = new System.Drawing.Size(78, 13);
+            this.label12.TabIndex = 5;
+            this.label12.Text = "7.5Hz - 60.0Hz";
+            // 
             // button2
             // 
             this.button2.Enabled = false;
@@ -328,14 +339,17 @@
             this.textBox1.TabIndex = 0;
             this.textBox1.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
             // 
-            // label12
+            // button5
             // 
-            this.label12.AutoSize = true;
-            this.label12.Location = new System.Drawing.Point(120, 54);
-            this.label12.Name = "label12";
-            this.label12.Size = new System.Drawing.Size(60, 13);
-            this.label12.TabIndex = 5;
-            this.label12.Text = "7.5Hz - 60.0Hz";
+            this.button5.Enabled = false;
+            this.button5.Location = new System.Drawing.Point(178, 129);
+            this.button5.Name = "button5";
+            this.button5.Size = new System.Drawing.Size(83, 26);
+            this.button5.TabIndex = 6;
+            this.button5.Text = "Poll";
+            this.button5.UseVisualStyleBackColor = true;
+            this.button5.Visible = false;
+            this.button5.Click += new System.EventHandler(this.button5_Click);
             // 
             // Form1
             // 
@@ -386,6 +400,7 @@
         private System.Windows.Forms.Label label10;
         private System.Windows.Forms.Label label11;
         private System.Windows.Forms.Label label12;
+        private System.Windows.Forms.Button button5;
     }
 }
 

@@ -33,7 +33,7 @@ namespace HighShearMixController
             updateStatus();
 
             runPoller(); // ******** renders debugger unusable - comment out to use debugger.
-            //button1.Enabled = true; // ********************************************* for testing
+            //button5.Enabled = true; button5.Visible = true; // ************************************ for testing
         }
 
 
@@ -45,7 +45,7 @@ namespace HighShearMixController
                 label8.Text = "Thermometer Connected";
                 label8.ForeColor = Color.DarkGreen;
 
-                double temp = controller.getTemp();
+                float temp = controller.getTemp();
                 labelTemp.Text = temp + " C";     
                 
                 if(temp - Properties.Settings.Default.WarningRange > double.Parse(textBox2.Text))
@@ -70,17 +70,22 @@ namespace HighShearMixController
             else
             {
                 labelTemp.ForeColor = Color.Red;
-                label5.ForeColor = Color.Red;                
+                label5.ForeColor = Color.Red;
+                label8.Text = "Thermometer Disconnected";
+                label8.ForeColor = Color.Red;
             }
             if (controller.DriveConn)
             {
                 label9.Text = "VFD Connected";
                 label9.ForeColor = Color.DarkGreen;
+                labelEqSpeed.Text = "" + controller.PredictedEqSpeed;
+                labelEqSpeed.ForeColor = Color.DarkGreen;
             }
             else
             {
                 label9.Text = "VFD Disconnected";
                 label9.ForeColor = Color.Red;
+                labelEqSpeed.ForeColor = Color.Red;
             }
 
             label11.Text = controller.getDriveWarning();
@@ -251,7 +256,11 @@ namespace HighShearMixController
                         }
                         Properties.Settings.Default.ManualSpeed = Convert.ToDouble(textBox1.Text);
                         //controller.setSpeed(); // *******for testing*****************
-                    }                    
+                    }
+                    else
+                    {
+                        label12.ForeColor = Color.Red;
+                    }
                 }
             }
             catch
@@ -326,6 +335,7 @@ namespace HighShearMixController
                     if (!(Convert.ToDouble(textBox1.Text) >= 7.5 && Convert.ToDouble(textBox1.Text) < Properties.Settings.Default.MaxSpeed))
                     {
                         textBox1.Text = ("" + Properties.Settings.Default.ManualSpeed);
+                        label12.ForeColor = Color.Red;
                     }
                 }
 
@@ -335,7 +345,7 @@ namespace HighShearMixController
                 }
                 
 
-                label11.Text = pollCounter + "";
+                //label11.Text = pollCounter + "";
 
                 updateStatus();
             }
@@ -355,6 +365,32 @@ namespace HighShearMixController
                 tbox.SelectionStart = tbox.Text.Length;
                 tbox.SelectionLength = 0;
             }
+        }
+
+
+        /*
+         * Poller for Debugging only.
+         */
+        private void button5_Click(object sender, EventArgs e)
+        {
+            
+            
+            controller.checkDriveConn();
+            controller.checkThermConn();
+            controller.setSpeed();
+
+            if (!(Convert.ToDouble(textBox1.Text) >= 7.5 && Convert.ToDouble(textBox1.Text) < Properties.Settings.Default.MaxSpeed))
+            {
+                textBox1.Text = ("" + Properties.Settings.Default.ManualSpeed);
+                label12.ForeColor = Color.Red;
+            }
+            else
+            {
+                label12.ForeColor = Color.Black;
+            }
+            
+            controller.calculateEqSpeed();
+            updateStatus();
         }
     }
 }

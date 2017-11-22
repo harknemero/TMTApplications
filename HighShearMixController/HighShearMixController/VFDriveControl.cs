@@ -21,7 +21,6 @@ namespace HighShearMixController
         private static string idResponse = ""; // ******* This needs to be determined *******
         private static byte networkAddress = 0x01;
         private static byte readHoldingReg = 0x03;
-        private static byte readInputReg = 0x04;
         private static byte writeSingleReg = 0x06;
         private static byte[] drivePassword = {0x00, 0x00}; // For locking and unlocking register/parameter access
 
@@ -91,10 +90,16 @@ namespace HighShearMixController
         // Sends pre-built command to VFDrive.
         private bool sendCommand(List<byte> bytes)
         {
-            bool result = false;            
-            
-            drive.Open();
-            drive.Write(bytes.ToArray(), 0, bytes.Count);
+            bool result = false;
+            try
+            {
+                drive.Open();
+                drive.Write(bytes.ToArray(), 0, bytes.Count);
+            }
+            catch
+            {
+                return false;
+            }
 
             if (!settingLock)
             {
@@ -277,6 +282,21 @@ namespace HighShearMixController
             return result;
         }
 
+        /*
+         * 
+         */
+         public double getSpeed()
+        {
+            double speed = 0;
+            // 01 03 00 19 00 01 55 CD
+            List<byte> bytes = new List<byte>();
+            bytes.Add(networkAddress); bytes.Add(readHoldingReg); bytes.Add(0x00);
+            bytes.Add(0x30); bytes.Add(drivePassword[0]); bytes.Add(drivePassword[1]);
+            bytes.Add(0x89); bytes.Add(0xC5); // CRC bytes - pre calculated
+
+            return speed;
+        }
+
         /*  Checks connection to VFDrive.
          *     
         */
@@ -360,7 +380,7 @@ namespace HighShearMixController
         private void unlockDrive()
         {
             List<byte> bytes = new List<byte>();
-            // Unlock drive with 0x_01_06_00_30_(p[0])_(p[1])       01 06 00 30 00 00 89 C5
+            // Unlock drive with 0x_01_06_00_30_(p[0])_(p[1])_89_C5
             bytes.Add(networkAddress); bytes.Add(writeSingleReg); bytes.Add(0x00);
             bytes.Add(0x30); bytes.Add(drivePassword[0]); bytes.Add(drivePassword[1]);
             bytes.Add(0x89); bytes.Add(0xC5); // CRC bytes - pre calculated

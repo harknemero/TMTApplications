@@ -12,6 +12,7 @@ namespace HighShearMixController
         private VFDriveControl drive;
         private int alarmLevel;
         private double predictedEqSpeed;
+        private double currentSpeed;
         private double currentTemp;
         private bool manual;
         private bool automatic;
@@ -30,6 +31,8 @@ namespace HighShearMixController
         public double CurrentTemp { get => currentTemp; set => currentTemp = value; }
         public bool ManualSpeedChanged { get => manualSpeedChanged; set => manualSpeedChanged = value; }
         public bool TargetTempChanged { get => targetTempChanged; set => targetTempChanged = value; }
+        public double PredictedEqSpeed { get => predictedEqSpeed; set => predictedEqSpeed = value; }
+        public double CurrentSpeed { get => currentSpeed; set => currentSpeed = value; }
 
         public Controller()
         {
@@ -40,6 +43,8 @@ namespace HighShearMixController
             Automatic = false;
             manualSpeedChanged = true;
             targetTempChanged = true;
+            //thermConn = therm.isConnected();
+            //driveConn = drive.isConnected();
         }
 
         // Start Mixer
@@ -62,11 +67,10 @@ namespace HighShearMixController
             return result;
         }
 
-
         // Gets current temperature from Thermometer Controller
-        public double getTemp()
+        public float getTemp()
         {
-            double temp = therm.getTemp();
+            float temp = therm.getTemp();
 
             return temp;
         }
@@ -103,17 +107,17 @@ namespace HighShearMixController
                         offset = 1 - (1 - offset) * (2 + currentTemp - Properties.Settings.Default.TargetTemperature);
                     }
 
-                    if (predictedEqSpeed * offset >= Properties.Settings.Default.MaxSpeed)
+                    if (PredictedEqSpeed * offset >= Properties.Settings.Default.MaxSpeed)
                     {
                         result = drive.setSpeed(Properties.Settings.Default.MaxSpeed);
                     }
-                    else if(predictedEqSpeed * offset <= Properties.Settings.Default.MinimumAutoSpeed)
+                    else if(PredictedEqSpeed * offset <= Properties.Settings.Default.MinimumAutoSpeed)
                     {
                         result = drive.setSpeed(Properties.Settings.Default.MinimumAutoSpeed);
                     }
                     else
                     {
-                        result = drive.setSpeed(predictedEqSpeed * offset);
+                        result = drive.setSpeed(PredictedEqSpeed * offset);
                     }
                 }
             }
@@ -121,16 +125,21 @@ namespace HighShearMixController
             return result;
         }
 
-        public double getPredictedEqSpeed()
+        public void getCurrentSpeed()
         {
-            return predictedEqSpeed;
+            currentSpeed = drive.getCurrentSpeed();
         }
 
-        public void calculateEqSpeed()
+        public double getPredictedEqSpeed()
+        {
+            return PredictedEqSpeed;
+        }
+
+        private void calculateEqSpeed()
         {
             double eqSpeed = 40;
 
-            predictedEqSpeed = eqSpeed;
+            PredictedEqSpeed = eqSpeed;
         }
 
         public void setAlarmLevel(int level)
@@ -160,7 +169,7 @@ namespace HighShearMixController
         public bool checkThermConn()
         {
             bool result = therm.isConnected();
-            result = true; // ********************************************* for testing
+            //result = true; // ********************************************* for testing
             ThermConn = result;
 
             return result; 
@@ -173,7 +182,7 @@ namespace HighShearMixController
                 return drive.openDrive();
             }
             bool result = drive.isConnected();
-            result = true; // ********************************************* for testing
+            //result = true; // ********************************************* for testing
             DriveConn = result;
 
             return result; 
