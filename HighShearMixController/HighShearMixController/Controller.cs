@@ -12,9 +12,7 @@ namespace HighShearMixController
         private VFDriveControl drive;
         private int alarmLevel;
         private double predictedEqSpeed;
-        private double targetTemp;
         private double currentTemp;
-        private double manualSpeed;
         private bool manual;
         private bool automatic;
         private bool thermConn;
@@ -38,8 +36,6 @@ namespace HighShearMixController
             therm = new ThermometerControl();
             drive = new VFDriveControl();
             alarmLevel = 0;
-            targetTemp = 0;
-            manualSpeed = 0;
             Manual = false;
             Automatic = false;
             manualSpeedChanged = true;
@@ -81,15 +77,15 @@ namespace HighShearMixController
         public bool setSpeed()
         {
             bool result = false;
-            if (manual && ManualSpeedChanged)
+            if (!automatic && ManualSpeedChanged)
             {
-                result = drive.setSpeed(manualSpeed);
+                result = drive.setSpeed(Properties.Settings.Default.ManualSpeed);
                 ManualSpeedChanged = false;
             }
             else if (automatic)
             {
 
-                if(currentTemp < targetTemp - 2)
+                if(currentTemp < Properties.Settings.Default.TargetTemperature - 2)
                 {
                     result = drive.setSpeed(Properties.Settings.Default.MaxSpeed);
                 }
@@ -97,14 +93,14 @@ namespace HighShearMixController
                 {
                     // Every degree difference between target and actual results in a 5% offset.
                     // The offset overcorrects for differences in order to get actual on target faster.
-                    double offset = (1 + ((targetTemp - currentTemp) / 20));
+                    double offset = (1 + ((Properties.Settings.Default.TargetTemperature - currentTemp) / 20));
 
                     // If the actual temp is higher than the target temp, then this offset is multiplied
                     // by 2 + the difference in degrees.
                     // A difference of 1 degree = -15%     2 = -40%     3 = -75%
-                    if(currentTemp > targetTemp)
+                    if(currentTemp > Properties.Settings.Default.TargetTemperature)
                     {
-                        offset = 1 - (1 - offset) * (2 + currentTemp - targetTemp);
+                        offset = 1 - (1 - offset) * (2 + currentTemp - Properties.Settings.Default.TargetTemperature);
                     }
 
                     if (predictedEqSpeed * offset >= Properties.Settings.Default.MaxSpeed)
@@ -181,6 +177,11 @@ namespace HighShearMixController
             DriveConn = result;
 
             return result; 
+        }
+
+        private void initializeDrive()
+        {
+            drive.initialize();
         }
     }
 }

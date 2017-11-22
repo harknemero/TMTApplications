@@ -32,7 +32,7 @@ namespace HighShearMixController
 
             updateStatus();
 
-            runPoller(); // ******** renders debugger unusable - crossthread transactions
+            runPoller(); // ******** renders debugger unusable - comment out to use debugger.
             //button1.Enabled = true; // ********************************************* for testing
         }
 
@@ -243,18 +243,15 @@ namespace HighShearMixController
             {
                 if (textBox1.Text != "")
                 {
-                    if (Convert.ToDouble(textBox1.Text) >= 1 && Convert.ToDouble(textBox1.Text) < Properties.Settings.Default.MaxSpeed)
+                    if (Convert.ToDouble(textBox1.Text) >= 7.5 && Convert.ToDouble(textBox1.Text) < Properties.Settings.Default.MaxSpeed)
                     {
                         if(Properties.Settings.Default.ManualSpeed != Convert.ToDouble(textBox1.Text))
                         {
                             controller.ManualSpeedChanged = true;
                         }
                         Properties.Settings.Default.ManualSpeed = Convert.ToDouble(textBox1.Text);
-                    }
-                    else
-                    {
-                        textBox1.Text = ("" + Properties.Settings.Default.ManualSpeed);
-                    }
+                        //controller.setSpeed(); // *******for testing*****************
+                    }                    
                 }
             }
             catch
@@ -324,12 +321,17 @@ namespace HighShearMixController
                 {
                     controller.checkDriveConn();
                     controller.checkThermConn();
+                    controller.setSpeed();
+
+                    if (!(Convert.ToDouble(textBox1.Text) >= 7.5 && Convert.ToDouble(textBox1.Text) < Properties.Settings.Default.MaxSpeed))
+                    {
+                        textBox1.Text = ("" + Properties.Settings.Default.ManualSpeed);
+                    }
                 }
 
                 if (recordingSession && pollCounter % Properties.Settings.Default.RecordInterval == 0)
                 {
-                    controller.calculateEqSpeed();
-                    controller.setSpeed();
+                    controller.calculateEqSpeed();                    
                 }
                 
 

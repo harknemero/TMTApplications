@@ -79,12 +79,20 @@ namespace HighShearMixController
             return (result);
         }
 
+        /*
+         * Initializes some drive settings.
+         * Assumes drive is properly connected.
+         */
+        public void initialize()
+        {
+
+        }
+
         // Sends pre-built command to VFDrive.
         private bool sendCommand(List<byte> bytes)
         {
             bool result = false;            
-
-            calculateCRC(bytes); //Non-functional until correct divisor is determined.
+            
             drive.Open();
             drive.Write(bytes.ToArray(), 0, bytes.Count);
 
@@ -206,11 +214,11 @@ namespace HighShearMixController
             bool result = false;
             List<byte> bytes = new List<byte>();
 
-            //W SA 06 RH RL DH DL CRCH CRCL
-            //0x_01_06_00_01_00_08           01 06 00 01 00 08 D9 CC
+            // W SA 06 RH RL DH DL CRCH CRCL
+            // 01 06 00 01 00 08 D9 CC
             bytes.Add(networkAddress); bytes.Add(writeSingleReg); bytes.Add(0x00); 
             bytes.Add(0x01); bytes.Add(0x00); bytes.Add(0x08); // Data low byte - set bit[3] to 1.
-            //bytes.Add(0xD9); bytes.Add(0xCC); // CRC bytes - pre calculated
+            bytes.Add(0xD9); bytes.Add(0xCC); // CRC bytes - pre calculated
 
             unlockDrive();
             sendCommand(bytes);
@@ -227,10 +235,10 @@ namespace HighShearMixController
         {
             bool result = false;
             List<byte> bytes = new List<byte>();
-            //0x_01_06_00_01_00_04
+            // 0x_01_06_00_01_00_04_D9_C9
             bytes.Add(networkAddress); bytes.Add(writeSingleReg); bytes.Add(0x00);
             bytes.Add(0x01); bytes.Add(0x00); bytes.Add(0x04); // set bit[2] in reg1 to stop
-            //bytes.Add(0xD9); bytes.Add(0xC9); // CRC bytes - pre calculated
+            bytes.Add(0xD9); bytes.Add(0xC9); // CRC bytes - pre calculated
 
             unlockDrive();
             sendCommand(bytes);
@@ -250,17 +258,21 @@ namespace HighShearMixController
             {
                 speed = 0;
             }
-            if(speed > 500)
+            if(speed > 600)
             {
-                speed = 500;
+                speed = 600;
             }
             Byte[] byteSpeed = BitConverter.GetBytes(speed);
             List<byte> bytes = new List<byte>();
-            //0x_01_06_00_01
-            bytes.Add(networkAddress); bytes.Add(writeSingleReg); bytes.Add(0x00);
-            bytes.Add(0x01); bytes.Add(byteSpeed[0]); bytes.Add(byteSpeed[1]);
+            //0x_01_06_00_67
+            bytes.Add(networkAddress); bytes.Add(writeSingleReg); 
+            bytes.Add(0x00); bytes.Add(0x67); // Register Address
+            bytes.Add(byteSpeed[1]); bytes.Add(byteSpeed[0]); // Speed value
+            calculateCRC(bytes); // Add CRC bytes
 
-            unlockDrive();
+            unlockParam();
+            sendCommand(bytes);
+            lockDriveAndParam();
 
             return result;
         }
@@ -351,7 +363,7 @@ namespace HighShearMixController
             // Unlock drive with 0x_01_06_00_30_(p[0])_(p[1])       01 06 00 30 00 00 89 C5
             bytes.Add(networkAddress); bytes.Add(writeSingleReg); bytes.Add(0x00);
             bytes.Add(0x30); bytes.Add(drivePassword[0]); bytes.Add(drivePassword[1]);
-            // bytes.Add(0x89); bytes.Add(0xC5); // CRC bytes - pre calculated
+            bytes.Add(0x89); bytes.Add(0xC5); // CRC bytes - pre calculated
 
             settingLock = true;
             sendCommand(bytes);
@@ -368,7 +380,7 @@ namespace HighShearMixController
             // Unlock drive with 0x_01_06_00_31_(p[0])_(p[1])
             bytes.Add(networkAddress); bytes.Add(writeSingleReg); bytes.Add(0x00);
             bytes.Add(0x31); bytes.Add(drivePassword[0]); bytes.Add(drivePassword[1]);
-            //bytes.Add(0xD8); bytes.Add(0x05); // CRC bytes - pre calculated
+            bytes.Add(0xD8); bytes.Add(0x05); // CRC bytes - pre calculated
 
             settingLock = true;
             sendCommand(bytes);
@@ -384,7 +396,7 @@ namespace HighShearMixController
             // Lock drive with 0x_01_06_00_01_00_02
             bytes.Add(networkAddress); bytes.Add(writeSingleReg); bytes.Add(0x00);
             bytes.Add(0x01); bytes.Add(0x00); bytes.Add(0x02);
-            //bytes.Add(0x59); bytes.Add(0xCB); // CRC bytes - pre calculated
+            bytes.Add(0x59); bytes.Add(0xCB); // CRC bytes - pre calculated
 
             settingLock = true;
             sendCommand(bytes);
@@ -392,8 +404,8 @@ namespace HighShearMixController
         }
 
         /*
-         * 3rd times a charm? not from the looks of it...
-         * 
+         * This CRC calculation method was described in multiple Modbus RTU tutorials.
+         * This did not produce valid results for this hardware.
          *
         private void calculateCRC(List<byte> bytes)
         {
@@ -437,9 +449,12 @@ namespace HighShearMixController
             bytes.Add(crc[0]);
         } //*/
 
+
         /*  
-         *  Non-Functional until correct divisor is determined.
+         *  This CRC calculation method seems to be the most commonly used method.
+         *  This method did not produce valid results for this hardware.
          *  
+         *  Non-Functional until correct divisor is determined.
          *  Calculate CRC through the following steps.
          *
          *  bytes concatenated into bit string
@@ -494,7 +509,9 @@ namespace HighShearMixController
         } //*/
 
         /*
-         * 
+         * This CRC calculation method was converted from a C function found in Appendix B of:
+         *      Modbus RTU Serial Communications User Manual
+         *      https://www.honeywellprocess.com/library/support/Public/Documents/51-52-25-66.pdf
          */
         private void calculateCRC(List<byte> bytes)
         {

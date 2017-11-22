@@ -114,3 +114,18 @@ VFD RS 485 Modbus Protocol Reference
 		send repeated read commands to prevent it from timing out. 
 	4. Lock Control when drive operations are complete by writing a 0x0002 (i.e. setting the Lock Security bit) 
 		to Register #1.
+
+	**Controlling Frequency, PID & Torque Setpoints**
+	The following is the sequence of events for changing the drive frequency, PID or torque setpoint: 
+	1. Configure the setpoint reference for NETWORK. The network can be set as the frequency, 
+		PID or torque setpoint reference in any of the following ways: 
+			a) Set P101 (Standard Reference Source) to NETWORK (06) and make sure that no AUTO source has been selected. 
+			b) Set P121…P123 to AUTO: NETWORK (07) and assert the corresponding TB-13x terminal. 
+			c) Unlock drive controls and write a value of 0xC000 to Register #1 (see Section 9.2.1). 
+	2. Unlock parameters by writing the drive password (P194) to Register #49. The drive will remain in its normal 
+		control mode.  The watchdog timer is not enabled when only parameters have been unlocked so there is no need 
+		to send repeated read commands to prevent it from timing out. 
+	3. Modify the appropriate NETWORK setpoint register. Register #44 - Network Speed Command Register #45 - Network 
+		PID Setpoint Command Register #46 - Network Torque Command 
+	4. Lock Control when drive operations are complete by writing a 0x0002 (i.e. setting the Lock Security bit) to 
+		Register #1

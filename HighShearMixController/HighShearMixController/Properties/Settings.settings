@@ -9,10 +9,10 @@
       <Value Profile="(Default)">3</Value>
     </Setting>
     <Setting Name="ManualSpeed" Type="System.Double" Scope="User">
-      <Value Profile="(Default)">4</Value>
+      <Value Profile="(Default)">7.5</Value>
     </Setting>
     <Setting Name="MinimumAutoSpeed" Type="System.Double" Scope="User">
-      <Value Profile="(Default)">2</Value>
+      <Value Profile="(Default)">7.5</Value>
     </Setting>
     <Setting Name="MaxSpeed" Type="System.Double" Scope="User">
       <Value Profile="(Default)">60</Value>
