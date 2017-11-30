@@ -2,25 +2,25 @@
 <SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="HighShearMixController.Properties" GeneratedClassName="Settings">
   <Profiles />
   <Settings>
-    <Setting Name="WarningRange" Type="System.Double" Scope="User">
+    <Setting Name="WarningRange" Type="System.Single" Scope="User">
       <Value Profile="(Default)">1</Value>
     </Setting>
-    <Setting Name="HazardRange" Type="System.Double" Scope="User">
+    <Setting Name="HazardRange" Type="System.Single" Scope="User">
       <Value Profile="(Default)">3</Value>
     </Setting>
-    <Setting Name="ManualSpeed" Type="System.Double" Scope="User">
+    <Setting Name="ManualSpeed" Type="System.Single" Scope="User">
       <Value Profile="(Default)">7.5</Value>
     </Setting>
-    <Setting Name="MinimumAutoSpeed" Type="System.Double" Scope="User">
+    <Setting Name="MinimumAutoSpeed" Type="System.Single" Scope="User">
       <Value Profile="(Default)">7.5</Value>
     </Setting>
-    <Setting Name="MaxSpeed" Type="System.Double" Scope="User">
+    <Setting Name="MaxSpeed" Type="System.Single" Scope="User">
       <Value Profile="(Default)">60</Value>
     </Setting>
-    <Setting Name="TargetTemperature" Type="System.Double" Scope="User">
+    <Setting Name="TargetTemperature" Type="System.Single" Scope="User">
       <Value Profile="(Default)">55</Value>
     </Setting>
-    <Setting Name="MaxTargetTemp" Type="System.Double" Scope="User">
+    <Setting Name="MaxTargetTemp" Type="System.Single" Scope="User">
       <Value Profile="(Default)">100</Value>
     </Setting>
     <Setting Name="PollingInterval" Type="System.Int32" Scope="User">

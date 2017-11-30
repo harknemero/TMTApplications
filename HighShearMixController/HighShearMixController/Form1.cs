@@ -66,6 +66,10 @@ namespace HighShearMixController
                     labelTemp.ForeColor = Color.DarkGreen;                    
                     label5.ForeColor = Color.DarkGreen;
                 }
+                if(controller.getPredictedEqSpeed() < 60 && controller.getPredictedEqSpeed() > 7.5)
+                {
+                    labelEqSpeed.ForeColor = Color.DarkGreen;
+                }
             }
             else
             {
@@ -73,19 +77,25 @@ namespace HighShearMixController
                 label5.ForeColor = Color.Red;
                 label8.Text = "Thermometer Disconnected";
                 label8.ForeColor = Color.Red;
+                labelEqSpeed.ForeColor = Color.Red;
             }
             if (controller.DriveConn)
             {
                 label9.Text = "VFD Connected";
                 label9.ForeColor = Color.DarkGreen;
+
                 labelEqSpeed.Text = "" + controller.PredictedEqSpeed;
                 labelEqSpeed.ForeColor = Color.DarkGreen;
+
+                labelSpeed.Text = "" + controller.CurrentSpeed;
+                labelSpeed.ForeColor = Color.DarkGreen;
+
             }
             else
             {
                 label9.Text = "VFD Disconnected";
                 label9.ForeColor = Color.Red;
-                labelEqSpeed.ForeColor = Color.Red;
+                labelSpeed.ForeColor = Color.Red;
             }
 
             label11.Text = controller.getDriveWarning();

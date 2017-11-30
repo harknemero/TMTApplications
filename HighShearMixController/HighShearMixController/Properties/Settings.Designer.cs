@@ -26,9 +26,9 @@ namespace HighShearMixController.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("1")]
-        public double WarningRange {
+        public float WarningRange {
             get {
-                return ((double)(this["WarningRange"]));
+                return ((float)(this["WarningRange"]));
             }
             set {
                 this["WarningRange"] = value;
@@ -38,9 +38,9 @@ namespace HighShearMixController.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("3")]
-        public double HazardRange {
+        public float HazardRange {
             get {
-                return ((double)(this["HazardRange"]));
+                return ((float)(this["HazardRange"]));
             }
             set {
                 this["HazardRange"] = value;
@@ -50,9 +50,9 @@ namespace HighShearMixController.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("7.5")]
-        public double ManualSpeed {
+        public float ManualSpeed {
             get {
-                return ((double)(this["ManualSpeed"]));
+                return ((float)(this["ManualSpeed"]));
             }
             set {
                 this["ManualSpeed"] = value;
@@ -62,9 +62,9 @@ namespace HighShearMixController.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("7.5")]
-        public double MinimumAutoSpeed {
+        public float MinimumAutoSpeed {
             get {
-                return ((double)(this["MinimumAutoSpeed"]));
+                return ((float)(this["MinimumAutoSpeed"]));
             }
             set {
                 this["MinimumAutoSpeed"] = value;
@@ -74,9 +74,9 @@ namespace HighShearMixController.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("60")]
-        public double MaxSpeed {
+        public float MaxSpeed {
             get {
-                return ((double)(this["MaxSpeed"]));
+                return ((float)(this["MaxSpeed"]));
             }
             set {
                 this["MaxSpeed"] = value;
@@ -86,9 +86,9 @@ namespace HighShearMixController.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("55")]
-        public double TargetTemperature {
+        public float TargetTemperature {
             get {
-                return ((double)(this["TargetTemperature"]));
+                return ((float)(this["TargetTemperature"]));
             }
             set {
                 this["TargetTemperature"] = value;
@@ -98,9 +98,9 @@ namespace HighShearMixController.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("100")]
-        public double MaxTargetTemp {
+        public float MaxTargetTemp {
             get {
-                return ((double)(this["MaxTargetTemp"]));
+                return ((float)(this["MaxTargetTemp"]));
             }
             set {
                 this["MaxTargetTemp"] = value;

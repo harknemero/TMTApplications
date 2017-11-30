@@ -84,7 +84,17 @@ namespace HighShearMixController
          */
         public void initialize()
         {
+            // set p101 to 6 (network)
+        }
 
+        /*
+         * Restores drive settings for manual use.
+         * Assumes drive is properly connected.
+         */
+        public void restore()
+        {
+            
+            // set p101 to 0 (keypad)
         }
 
         // Sends pre-built command to VFDrive.
@@ -252,8 +262,12 @@ namespace HighShearMixController
             return result;
         }
 
-        /*  Start Mixer.
-         *     
+        /*  
+         *  Set Mixer Speed.
+         *  Register # 44
+         *  Device takes an int, but converts it to double and divides by 10. 
+         *  EG:     595 = 59.5
+         *  So take a double from the user, multiply by 10 and convert to int.
         */
         public bool setSpeed(double s)
         {
@@ -285,20 +299,25 @@ namespace HighShearMixController
         /*
          * 
          */
-         public double getSpeed()
+         public float getSpeed()
         {
-            double speed = 0;
+            float speed = 0;
             // 01 03 00 19 00 01 55 CD
             List<byte> bytes = new List<byte>();
             bytes.Add(networkAddress); bytes.Add(readHoldingReg); bytes.Add(0x00);
             bytes.Add(0x30); bytes.Add(drivePassword[0]); bytes.Add(drivePassword[1]);
             bytes.Add(0x89); bytes.Add(0xC5); // CRC bytes - pre calculated
 
+            sendCommand(bytes);
+
+            byte[] response = getResponse(7);
+            speed = ((((ushort) response[3]) * 256) + (ushort) response[4]);
+
             return speed;
         }
 
-        /*  Checks connection to VFDrive.
-         *     
+        /*  
+         *  Checks connection to VFDrive.   
         */
         public bool isConnected()
         {
