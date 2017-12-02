@@ -82,7 +82,7 @@ namespace HighShearMixController
                 result = true;
             }
 
-            return result;
+            return true; //result; ******************For testing*********************
         }
     }
 }

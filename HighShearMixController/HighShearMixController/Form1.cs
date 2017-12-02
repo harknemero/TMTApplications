@@ -8,6 +8,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
+
+
 namespace HighShearMixController
 {
     public partial class Form1 : Form
@@ -16,19 +18,22 @@ namespace HighShearMixController
         private int temperatureAlarm;
         private bool lockdown;
         private bool continuePolling;
+        private bool pollNow;
         private bool recordingSession;
 
-        public Form1()
+        public Form1(Controller c)
         {
-            controller = new Controller();
+            controller = c;
             temperatureAlarm = 0;
             lockdown = false; // *********** initialize this to true after development ********************
             continuePolling = true;
+            pollNow = true;
             recordingSession = false;
             InitializeComponent();
 
             textBox1.Text = Properties.Settings.Default.ManualSpeed + "";
             textBox2.Text = Properties.Settings.Default.TargetTemperature + "";
+            label12.Text = Properties.Settings.Default.MinimumAutoSpeed + "Hz - 60.0Hz";
 
             updateStatus();
 
@@ -66,7 +71,8 @@ namespace HighShearMixController
                     labelTemp.ForeColor = Color.DarkGreen;                    
                     label5.ForeColor = Color.DarkGreen;
                 }
-                if(controller.getPredictedEqSpeed() < 60 && controller.getPredictedEqSpeed() > 7.5)
+                if(controller.getPredictedEqSpeed() < Properties.Settings.Default.MaxSpeed && 
+                    controller.getPredictedEqSpeed() > Properties.Settings.Default.MinimumAutoSpeed)
                 {
                     labelEqSpeed.ForeColor = Color.DarkGreen;
                 }
@@ -258,13 +264,16 @@ namespace HighShearMixController
             {
                 if (textBox1.Text != "")
                 {
-                    if (Convert.ToDouble(textBox1.Text) >= 7.5 && Convert.ToDouble(textBox1.Text) < Properties.Settings.Default.MaxSpeed)
+                    if (Convert.ToDouble(textBox1.Text) >= Properties.Settings.Default.MinimumAutoSpeed 
+                        && Convert.ToDouble(textBox1.Text) < Properties.Settings.Default.MaxSpeed)
                     {
+                        label12.ForeColor = Color.Black;
                         if(Properties.Settings.Default.ManualSpeed != Convert.ToDouble(textBox1.Text))
                         {
                             controller.ManualSpeedChanged = true;
+                            pollNow = true;
                         }
-                        Properties.Settings.Default.ManualSpeed = Convert.ToDouble(textBox1.Text);
+                        Properties.Settings.Default.ManualSpeed = (float) Convert.ToDouble(textBox1.Text);
                         //controller.setSpeed(); // *******for testing*****************
                     }
                     else
@@ -293,8 +302,9 @@ namespace HighShearMixController
                         if (Properties.Settings.Default.TargetTemperature != Convert.ToDouble(textBox2.Text))
                         {
                             controller.TargetTempChanged = true;
+                            pollNow = true;
                         }
-                        Properties.Settings.Default.TargetTemperature = Convert.ToDouble(textBox2.Text);
+                        Properties.Settings.Default.TargetTemperature = (float) Convert.ToDouble(textBox2.Text);
                     }
                     else
                     {
@@ -330,7 +340,17 @@ namespace HighShearMixController
             while (continuePolling)
             {
                 pollCounter++;
-                System.Threading.Thread.Sleep(Properties.Settings.Default.PollingInterval);
+
+                // If pollNow flag is set, unset flag. Otherwise, sleep.
+                if (pollNow)
+                {
+                    pollNow = false;
+                }
+                else
+                {
+                    System.Threading.Thread.Sleep(Properties.Settings.Default.PollingInterval);
+                }
+
                 if(driveConn != controller.DriveConn || thermConn != controller.ThermConn)
                 {
                     updateStatus();
@@ -341,12 +361,7 @@ namespace HighShearMixController
                     controller.checkDriveConn();
                     controller.checkThermConn();
                     controller.setSpeed();
-
-                    if (!(Convert.ToDouble(textBox1.Text) >= 7.5 && Convert.ToDouble(textBox1.Text) < Properties.Settings.Default.MaxSpeed))
-                    {
-                        textBox1.Text = ("" + Properties.Settings.Default.ManualSpeed);
-                        label12.ForeColor = Color.Red;
-                    }
+                    controller.getCurrentSpeed();
                 }
 
                 if (recordingSession && pollCounter % Properties.Settings.Default.RecordInterval == 0)
@@ -389,7 +404,8 @@ namespace HighShearMixController
             controller.checkThermConn();
             controller.setSpeed();
 
-            if (!(Convert.ToDouble(textBox1.Text) >= 7.5 && Convert.ToDouble(textBox1.Text) < Properties.Settings.Default.MaxSpeed))
+            if (!(Convert.ToDouble(textBox1.Text) >= Properties.Settings.Default.MinimumAutoSpeed 
+                && Convert.ToDouble(textBox1.Text) < Properties.Settings.Default.MaxSpeed))
             {
                 textBox1.Text = ("" + Properties.Settings.Default.ManualSpeed);
                 label12.ForeColor = Color.Red;

@@ -16,6 +16,7 @@ namespace HighShearMixController
         private bool portBusy;
         private bool settingLock;
         private byte[] rsData;
+        private byte[] rsDataBuffer;
         private string warning;
 
         private static string idResponse = ""; // ******* This needs to be determined *******
@@ -42,6 +43,10 @@ namespace HighShearMixController
             drive.ReadTimeout = 100;    //Timeout after 1 second
             openDrive(); // ********** for testing purposes ***********
         }
+
+        /*
+         * Opend a connection to the drive through its comm port.
+        */
         public bool openDrive()
         {
             bool result = false;
@@ -75,6 +80,12 @@ namespace HighShearMixController
                     drive.Close();
                 }
             }
+
+            if (result)
+            {
+                initialize();
+            }
+
             return (result);
         }
 
@@ -84,7 +95,18 @@ namespace HighShearMixController
          */
         public void initialize()
         {
-            // set p101 to 6 (network)
+            List<byte> bytes = new List<byte>();
+            
+            // Set to network control.
+            // 0x_01_06_00_65_00_06
+            bytes.Add(networkAddress); bytes.Add(writeSingleReg);
+            bytes.Add(0x00); bytes.Add(0x65); // Register Address
+            bytes.Add(0x00); bytes.Add(0x06); // 6 = Network control
+            calculateCRC(bytes); // Add CRC bytes
+
+            unlockParam();
+            sendCommand(bytes);
+            lockDriveAndParam();
         }
 
         /*
@@ -92,41 +114,49 @@ namespace HighShearMixController
          * Assumes drive is properly connected.
          */
         public void restore()
-        {
+        {           
+            List<byte> bytes = new List<byte>();
             
-            // set p101 to 0 (keypad)
+            // Revert to manual control.
+            // 0x_01_06_00_65_00_00
+            bytes.Add(networkAddress); bytes.Add(writeSingleReg);
+            bytes.Add(0x00); bytes.Add(0x65); // Register Address
+            bytes.Add(0x00); bytes.Add(0x00); // 6 = Network control
+            calculateCRC(bytes); // Add CRC bytes
+
+            unlockParam();
+            sendCommand(bytes);
+            lockDriveAndParam();
         }
 
         // Sends pre-built command to VFDrive.
         private bool sendCommand(List<byte> bytes)
         {
             bool result = false;
+
+            int rsLength = 0;
+            if(bytes[1] == 0x03)
+            {
+                rsLength = 15;
+            }
+            else
+            {
+                rsLength = 16;
+            }
+            
             try
             {
                 drive.Open();
+                drive.DiscardInBuffer();
                 drive.Write(bytes.ToArray(), 0, bytes.Count);
+                finishTask();
+                rsDataBuffer = getResponse(rsLength);
             }
             catch
             {
                 return false;
-            }
-
-            if (!settingLock)
-            {
-                rsData = new byte[] { };
-                try
-                {
-                    rsData = getResponse((drive.ReadExisting()).Length);
-                }
-                catch
-                {
-                    
-                }
-                
-            }
-            drive.DiscardInBuffer();
-
-            finishTask();
+            }            
+            
             drive.Close();
             return result;
         }
@@ -140,7 +170,7 @@ namespace HighShearMixController
             try
             {
                 byte[] response = new byte[byteNum];
-                drive.Read(response, 0, byteNum);      
+                drive.Read(response, 0, byteNum);
                 return response;
             }
             catch
@@ -257,6 +287,7 @@ namespace HighShearMixController
 
             unlockDrive();
             sendCommand(bytes);
+            rsData = (byte[]) rsDataBuffer.Clone(); // Capture response before it is overwritten by next command.
             lockDriveAndParam();
 
             return result;
@@ -283,9 +314,9 @@ namespace HighShearMixController
             }
             Byte[] byteSpeed = BitConverter.GetBytes(speed);
             List<byte> bytes = new List<byte>();
-            //0x_01_06_00_67
+            //0x_01_06_00_2C 
             bytes.Add(networkAddress); bytes.Add(writeSingleReg); 
-            bytes.Add(0x00); bytes.Add(0x67); // Register Address
+            bytes.Add(0x00); bytes.Add(0x2C); // Register Address
             bytes.Add(byteSpeed[1]); bytes.Add(byteSpeed[0]); // Speed value
             calculateCRC(bytes); // Add CRC bytes
 
@@ -304,14 +335,17 @@ namespace HighShearMixController
             float speed = 0;
             // 01 03 00 19 00 01 55 CD
             List<byte> bytes = new List<byte>();
-            bytes.Add(networkAddress); bytes.Add(readHoldingReg); bytes.Add(0x00);
-            bytes.Add(0x30); bytes.Add(drivePassword[0]); bytes.Add(drivePassword[1]);
-            bytes.Add(0x89); bytes.Add(0xC5); // CRC bytes - pre calculated
-
+            bytes.Add(networkAddress); bytes.Add(readHoldingReg);
+            bytes.Add(0x00); bytes.Add(0x19);
+            bytes.Add(0x00); bytes.Add(0x01);
+            bytes.Add(0x55); bytes.Add(0xCD);
+            
             sendCommand(bytes);
+            rsData = (byte[]) rsDataBuffer.Clone();
 
-            byte[] response = getResponse(7);
-            speed = ((((ushort) response[3]) * 256) + (ushort) response[4]);
+            speed = ((((ushort) rsData[11]) * 256) + (ushort) rsData[12]);
+
+            speed /= 10;
 
             return speed;
         }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace HighShearMixController
 {
-    class Controller
+    public class Controller
     {
         private ThermometerControl therm;
         private VFDriveControl drive;
@@ -167,7 +167,7 @@ namespace HighShearMixController
          * 
          * Algorithm:
         */
-        private void calculateEqSpeed()
+        public void calculateEqSpeed()
         {
             float eqSpeed = -1;
 
@@ -226,9 +226,9 @@ namespace HighShearMixController
             return result; 
         }
 
-        private void initializeDrive()
+        public void restoreDrive()
         {
-            drive.initialize();
+            drive.restore();
         }        
     }
 

@@ -16,8 +16,11 @@ namespace HighShearMixController
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Form1());
+            Controller controller = new Controller();
+            Form1 form = new Form1(controller);
+            Application.Run(form);
 
+            controller.restoreDrive();
             Properties.Settings.Default.Save();
         }
     }
