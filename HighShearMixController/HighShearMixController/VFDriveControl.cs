@@ -14,7 +14,6 @@ namespace HighShearMixController
         private SerialPort drive;
         //private DriveExtension driveExtend;
         private bool portBusy;
-        private bool settingLock;
         private byte[] rsData;
         private byte[] rsDataBuffer;
         private string warning;
@@ -437,10 +436,8 @@ namespace HighShearMixController
             bytes.Add(networkAddress); bytes.Add(writeSingleReg); bytes.Add(0x00);
             bytes.Add(0x30); bytes.Add(drivePassword[0]); bytes.Add(drivePassword[1]);
             bytes.Add(0x89); bytes.Add(0xC5); // CRC bytes - pre calculated
-
-            settingLock = true;
+            
             sendCommand(bytes);
-            settingLock = false;
         }
 
         /*  
@@ -454,10 +451,8 @@ namespace HighShearMixController
             bytes.Add(networkAddress); bytes.Add(writeSingleReg); bytes.Add(0x00);
             bytes.Add(0x31); bytes.Add(drivePassword[0]); bytes.Add(drivePassword[1]);
             bytes.Add(0xD8); bytes.Add(0x05); // CRC bytes - pre calculated
-
-            settingLock = true;
+            
             sendCommand(bytes);
-            settingLock = false;
         }
 
         /*  
@@ -470,10 +465,15 @@ namespace HighShearMixController
             bytes.Add(networkAddress); bytes.Add(writeSingleReg); bytes.Add(0x00);
             bytes.Add(0x01); bytes.Add(0x00); bytes.Add(0x02);
             bytes.Add(0x59); bytes.Add(0xCB); // CRC bytes - pre calculated
-
-            settingLock = true;
+            
             sendCommand(bytes);
-            settingLock = false;
+            if (rsDataBuffer.Length >= 8)
+            {
+                if (rsDataBuffer[6] == 0x00 && rsDataBuffer[7] == 0x00)
+                {
+                    sendCommand(bytes);
+                }
+            }
         }
 
         /*

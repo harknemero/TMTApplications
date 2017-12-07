@@ -3,9 +3,7 @@ High Shear Mix Controller
 
 Purpose: Regulate solution temperature by adjusting mix speed.
 
-Completed setSpeed implementation
-Program now starts by setting SMV to Network. Closes by restoring SMV to manual.
-Refactored Poller. Now skips sleep if pollNow flag is set by changed conditions.
+Improved robustness of VFDriveControl through conditional repeat commands.
 
 Features:
 
