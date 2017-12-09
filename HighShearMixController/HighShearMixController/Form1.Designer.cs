@@ -33,6 +33,7 @@
             this.label11 = new System.Windows.Forms.Label();
             this.label10 = new System.Windows.Forms.Label();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
+            this.button5 = new System.Windows.Forms.Button();
             this.labelEqSpeed = new System.Windows.Forms.Label();
             this.labelSpeed = new System.Windows.Forms.Label();
             this.labelTemp = new System.Windows.Forms.Label();
@@ -54,7 +55,9 @@
             this.label2 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.textBox1 = new System.Windows.Forms.TextBox();
-            this.button5 = new System.Windows.Forms.Button();
+            this.label13 = new System.Windows.Forms.Label();
+            this.label14 = new System.Windows.Forms.Label();
+            this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -74,6 +77,8 @@
             // 
             // tabPage1
             // 
+            this.tabPage1.Controls.Add(this.label14);
+            this.tabPage1.Controls.Add(this.label13);
             this.tabPage1.Controls.Add(this.label11);
             this.tabPage1.Controls.Add(this.label10);
             this.tabPage1.Controls.Add(this.groupBox3);
@@ -122,17 +127,29 @@
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "System Status";
             // 
+            // button5
+            // 
+            this.button5.Enabled = false;
+            this.button5.Location = new System.Drawing.Point(178, 129);
+            this.button5.Name = "button5";
+            this.button5.Size = new System.Drawing.Size(83, 26);
+            this.button5.TabIndex = 6;
+            this.button5.Text = "Poll";
+            this.button5.UseVisualStyleBackColor = true;
+            this.button5.Visible = false;
+            this.button5.Click += new System.EventHandler(this.button5_Click);
+            // 
             // labelEqSpeed
             // 
             this.labelEqSpeed.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.labelEqSpeed.AutoSize = true;
             this.labelEqSpeed.ForeColor = System.Drawing.Color.Red;
-            this.labelEqSpeed.Location = new System.Drawing.Point(232, 66);
+            this.labelEqSpeed.Location = new System.Drawing.Point(201, 66);
             this.labelEqSpeed.Name = "labelEqSpeed";
             this.labelEqSpeed.RightToLeft = System.Windows.Forms.RightToLeft.No;
-            this.labelEqSpeed.Size = new System.Drawing.Size(29, 13);
+            this.labelEqSpeed.Size = new System.Drawing.Size(22, 13);
             this.labelEqSpeed.TabIndex = 7;
-            this.labelEqSpeed.Text = "0 Hz";
+            this.labelEqSpeed.Text = "NA";
             this.labelEqSpeed.TextAlign = System.Drawing.ContentAlignment.TopRight;
             // 
             // labelSpeed
@@ -140,7 +157,7 @@
             this.labelSpeed.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.labelSpeed.AutoSize = true;
             this.labelSpeed.ForeColor = System.Drawing.Color.Red;
-            this.labelSpeed.Location = new System.Drawing.Point(232, 44);
+            this.labelSpeed.Location = new System.Drawing.Point(201, 44);
             this.labelSpeed.Name = "labelSpeed";
             this.labelSpeed.RightToLeft = System.Windows.Forms.RightToLeft.No;
             this.labelSpeed.Size = new System.Drawing.Size(29, 13);
@@ -153,7 +170,7 @@
             this.labelTemp.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.labelTemp.AutoSize = true;
             this.labelTemp.ForeColor = System.Drawing.Color.Red;
-            this.labelTemp.Location = new System.Drawing.Point(208, 22);
+            this.labelTemp.Location = new System.Drawing.Point(201, 22);
             this.labelTemp.Name = "labelTemp";
             this.labelTemp.Size = new System.Drawing.Size(53, 13);
             this.labelTemp.TabIndex = 5;
@@ -339,17 +356,24 @@
             this.textBox1.TabIndex = 0;
             this.textBox1.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
             // 
-            // button5
+            // label13
             // 
-            this.button5.Enabled = false;
-            this.button5.Location = new System.Drawing.Point(178, 129);
-            this.button5.Name = "button5";
-            this.button5.Size = new System.Drawing.Size(83, 26);
-            this.button5.TabIndex = 6;
-            this.button5.Text = "Poll";
-            this.button5.UseVisualStyleBackColor = true;
-            this.button5.Visible = false;
-            this.button5.Click += new System.EventHandler(this.button5_Click);
+            this.label13.AutoSize = true;
+            this.label13.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.label13.Location = new System.Drawing.Point(17, 215);
+            this.label13.Name = "label13";
+            this.label13.Size = new System.Drawing.Size(51, 13);
+            this.label13.TabIndex = 5;
+            this.label13.Text = "Debug 1:";
+            // 
+            // label14
+            // 
+            this.label14.AutoSize = true;
+            this.label14.Location = new System.Drawing.Point(17, 241);
+            this.label14.Name = "label14";
+            this.label14.Size = new System.Drawing.Size(51, 13);
+            this.label14.TabIndex = 6;
+            this.label14.Text = "Debug 2:";
             // 
             // Form1
             // 
@@ -401,6 +425,9 @@
         private System.Windows.Forms.Label label11;
         private System.Windows.Forms.Label label12;
         private System.Windows.Forms.Button button5;
+        private System.Windows.Forms.Label label13;
+        private System.Windows.Forms.Label label14;
+        private System.Windows.Forms.SaveFileDialog saveFileDialog1;
     }
 }
 

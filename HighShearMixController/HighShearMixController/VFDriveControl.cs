@@ -255,7 +255,7 @@ namespace HighShearMixController
         */
         public bool start()
         {
-            bool result = false;
+            bool result = true;
             List<byte> bytes = new List<byte>();
 
             // W SA 06 RH RL DH DL CRCH CRCL
@@ -277,7 +277,7 @@ namespace HighShearMixController
         */
         public bool stop()
         {
-            bool result = false;
+            bool result = true;
             List<byte> bytes = new List<byte>();
             // 0x_01_06_00_01_00_04_D9_C9
             bytes.Add(networkAddress); bytes.Add(writeSingleReg); bytes.Add(0x00);
@@ -288,6 +288,14 @@ namespace HighShearMixController
             sendCommand(bytes);
             rsData = (byte[]) rsDataBuffer.Clone(); // Capture response before it is overwritten by next command.
             lockDriveAndParam();
+
+            /*if(!checkResponse(bytes.ToArray(), rsData))
+            {
+                unlockDrive();
+                sendCommand(bytes);
+                rsData = (byte[])rsDataBuffer.Clone(); // Capture response before it is overwritten by next command.
+                lockDriveAndParam();
+            }*/ 
 
             return result;
         }
@@ -475,111 +483,6 @@ namespace HighShearMixController
                 }
             }
         }
-
-        /*
-         * This CRC calculation method was described in multiple Modbus RTU tutorials.
-         * This did not produce valid results for this hardware.
-         *
-        private void calculateCRC(List<byte> bytes)
-        {
-            byte[] crc = { 0xFF, 0xFF };
-            byte[] xorVal = { 0xA0, 0x01 };
-            BitArray xorBits = byteToBit(xorVal);
-
-            for (int bnum = 0; bnum < bytes.Count; bnum++)
-            {
-                crc[1] = (byte)(crc[1] ^ bytes[bnum]);
-                BitArray bits = byteToBit(crc);
-                for (int count = 0; count < 8; count++)
-                {
-                    // Shift BitArray one space right.
-                    
-                    for (int i = 15; i >= 1; i--)
-                    {
-                        bits[i] = bits[i - 1];
-                    }
-                    bits[0] = false;
-                    
-                    if (bits.Get(15))
-                    {
-                        bool bit1;
-                        bool bit2;
-                        bool xor;
-                        for (int xorCount = 0; xorCount < 16; xorCount++)
-                        {
-                            bit1 = bits.Get(xorCount);
-                            bit2 = xorBits.Get(xorCount);
-                            xor = bit1 ^ bit2;
-                            bits.Set(xorCount, xor);
-                        }
-                        byte[] t1 = ToByteArray(bits); // For testing **************
-                        byte[] t2 = ToByteArray(xorBits); // For testing **********************
-                    }                    
-                }
-                crc = ToByteArray(bits);
-            }
-            bytes.Add(crc[1]);
-            bytes.Add(crc[0]);
-        } //*/
-
-
-        /*  
-         *  This CRC calculation method seems to be the most commonly used method.
-         *  This method did not produce valid results for this hardware.
-         *  
-         *  Non-Functional until correct divisor is determined.
-         *  Calculate CRC through the following steps.
-         *
-         *  bytes concatenated into bit string
-         *  concatenate 16 0's onto bit string
-         *  bit string reversed (significant bit on the right)
-         *  Inside loop that runs
-         *      shift left until 1 is in x^0 position
-         *      XOR with 0xC00280 - 1100 0000 0000 0010 1000 0000 (x^16 + x^15 + x^2 + 1)
-         *
-         *  returns full bit array with CRC bits appended.
-        *
-        private void calculateCRC(List<byte> bytes)
-        {
-            BitArray bits = new BitArray(byteToBit(bytes.ToArray()));
-
-            byte[] divBytes = { 0xFF, 0xFF, 0xFF };//{0xC0, 0x02, 0x80, 0x00, 0x00, 0x00};            
-            BitArray divisor = new BitArray(byteToBit(divBytes.ToArray()));
-
-            int xorOps = 0;
-            for (int count = 0; count < bytes.Count * 8; count++)
-            {
-                if (bits.Get(0))
-                {
-                    xorOps++;
-                    bool bit1;
-                    bool bit2;
-                    bool xor;
-                    for(int xorCount = 0; xorCount < 17; xorCount++)
-                    {
-                        bit1 = bits.Get(xorCount);
-                        bit2 = divisor.Get(xorCount);
-                        xor = bit1 ^ bit2;
-                        bits.Set(xorCount, xor);
-                    }
-                    byte[] t1 = ToByteArray(bits); // For testing **************
-                    byte[] t2 = ToByteArray(divisor); // For testing **********************
-                }
-                // Shift BitArray one space left.
-                for (int i = 0; i < bits.Count - 1; i++)
-                {
-                    bits[i] = bits[i + 1];
-                }
-                bits[bits.Count - 1] = false;
-            }
-
-            byte[] crc = ToByteArray(bits);
-
-            bytes.Add(crc[0]);
-            bytes.Add(crc[1]);
-            xorOps += 0;
-            
-        } //*/
 
         /*
          * This CRC calculation method was converted from a C function found in Appendix B of:

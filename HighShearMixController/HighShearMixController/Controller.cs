@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -23,9 +24,10 @@ namespace HighShearMixController
         private bool targetTempChanged;     // Flag for speed setting and datapolling
         private bool manualSpeedChanged;    // Flag for speed setting.
         private bool commandSpeedChanged;   // Flag for data polling purposes.
-        private System.Timers.Timer timer;
+        private System.Diagnostics.Stopwatch timer;
         private List<DataPoint> data;
         private List<DataPoint> sampleData;
+        public string debugMessage = "";    // For testing/debugging only.
 
         private static int maxAlarmLevel = 2;
         private static System.TimeSpan sampleInterval = new System.TimeSpan(0, 0, 30); // 30 second intervals
@@ -46,17 +48,20 @@ namespace HighShearMixController
         {
             therm = new ThermometerControl();
             drive = new VFDriveControl();
+            data = new List<DataPoint>();
+            sampleData = new List<DataPoint>();
+            timer = new System.Diagnostics.Stopwatch();
             alarmLevel = 0;
             Manual = false;
             Automatic = false;
             manualSpeedChanged = true;
             commandSpeedChanged = true;
             targetTempChanged = true;
+            predictedEqSpeed = -1;
             currentSpeed = 0;
             currentTemp = -50;
             startingTemp = -50;
-            data = new List<DataPoint>();
-            sampleData = new List<DataPoint>();
+            
             //thermConn = therm.isConnected();
             //driveConn = drive.isConnected();
         }
@@ -72,6 +77,11 @@ namespace HighShearMixController
                 startingTemp = currentTemp;
             }
 
+            if (result)
+            {
+                timer.Start();
+            }
+
             return result;
         }
 
@@ -82,6 +92,11 @@ namespace HighShearMixController
             result = drive.stop();
             ManualSpeedChanged = true;
 
+            if (result)
+            {
+                timer.Start();
+            }
+
             return result;
         }
 
@@ -89,6 +104,8 @@ namespace HighShearMixController
         public float getTemp()
         {
             float temp = therm.getTemp();
+            temp = (temp + currentTemp) / 2; // All temp samples will be an average of two samples.
+            currentTemp = temp;
 
             return temp;
         }
@@ -98,36 +115,44 @@ namespace HighShearMixController
         */
         public void pollData()
         {
-            DataPoint dp;            
-            System.DateTime time = new System.DateTime();
-            time.ToLocalTime();
+            DataPoint dp;
             float slope = 0;
             float derivative = 0;
             DataPoint last;
             if (sampleData.Count > 0)
             {
                 last = sampleData[sampleData.Count - 1];
-                slope = (float)((double)(currentTemp - last.Temp) / (time.Subtract(last.Time).TotalSeconds)); 
-                
-                if(sampleData.Count > 1)
-                {                    
-                    derivative = (float)((double)(slope - last.Slope) / (currentTemp - last.Temp));
+                slope = (float)((double)(currentTemp - last.Temp) / (timer.Elapsed.Subtract(last.Time).TotalSeconds));
+
+                /*debugMessage = "Controller Debug: ElapsedTime = " + timer.Elapsed.Subtract(last.Time).TotalSeconds +
+                    "    Slope = " + slope; //*/// ***** Debugging *****
+
+                if (sampleData.Count > 1)
+                {
+                    float tempChange = currentTemp - last.Temp;
+                    if(tempChange == 0)
+                    {
+                        tempChange = (float) .0001;
+                    }
+                    derivative = (float)((double)(slope - last.Slope) / (tempChange));
                 }
             }
 
-            dp = new DataPoint(time, commandSpeed, currentTemp, slope, derivative);
+            dp = new DataPoint(timer.Elapsed, commandSpeed, currentTemp, slope, derivative);
 
             if (commandSpeedChanged)
             {
-                sampleData = new List<DataPoint>();
+                //sampleData = new List<DataPoint>();
                 commandSpeedChanged = false;
             }
             sampleData.Add(dp);
+            //debugMessage = "Controller Debug: SampleData.Count = " + sampleData.Count(); *****Debugging*****
         }
 
-        // Sets the speed of the VF Drive based on whether Auto or Manual is activated
-        // If Auto is activated, then it sets the speed based on the predicted equilibrium speed as
-        // as well as on the difference between the actual and target temperatures.
+        /*
+         * 
+         * 
+        */
         public bool setSpeed()
         {
             float oldCommandSpeed = commandSpeed;
@@ -139,37 +164,55 @@ namespace HighShearMixController
             }
             else if (automatic)
             {
-
-                if(currentTemp < Properties.Settings.Default.TargetTemperature - 5)
+                if (sampleData.Count < 3)
                 {
-                    commandSpeed = Properties.Settings.Default.MaxSpeed;                    
-                }
-                else
-                {
-                    // Every degree difference between target and actual results in a 10% offset.
-                    // The offset overcorrects for differences in order to get on target faster.
-                    float offset = (1 + ((Properties.Settings.Default.TargetTemperature - currentTemp) / 10));
-
-                    // If the actual temp is higher than the target temp, then this offset is multiplied
-                    // by 1 + the difference in degrees.
-                    // A difference of 1 degree = -20%     2 = -60%     3 = -75%
-                    if(currentTemp > Properties.Settings.Default.TargetTemperature)
-                    {
-                        offset = 1 - (1 - offset) * (2 + currentTemp - Properties.Settings.Default.TargetTemperature);
-                    }
-
-                    if (PredictedEqSpeed * offset >= Properties.Settings.Default.MaxSpeed)
+                    if (currentTemp < Properties.Settings.Default.TargetTemperature - 1)
                     {
                         commandSpeed = Properties.Settings.Default.MaxSpeed;
                     }
-                    else if (PredictedEqSpeed * offset <= Properties.Settings.Default.MinimumAutoSpeed)
+                    if(currentTemp > Properties.Settings.Default.TargetTemperature + 1)
                     {
                         commandSpeed = Properties.Settings.Default.MinimumAutoSpeed;
                     }
+                }
+                else
+                {
+                    if (currentTemp < Properties.Settings.Default.TargetTemperature - 1)
+                    {
+                        commandSpeed = Properties.Settings.Default.MaxSpeed;
+                    }
                     else
                     {
-                        commandSpeed = PredictedEqSpeed * offset;
-                    }                    
+                        int size = sampleData.Count - 1;
+                        int samples = size;
+                        float tDiff = Properties.Settings.Default.TargetTemperature - currentTemp;
+                        float slope = 0;
+                        if(samples >= 10)
+                        {
+                            samples = 10;
+                        }                        
+                        for(int count = 1; count < samples; count++)
+                        {
+                            slope += sampleData[size - count].Slope;
+                        }
+                        slope /= 10;
+                        float slopeWanted = tDiff * (float) 0.01;
+                        
+                        if(slope < slopeWanted && CommandSpeed < Properties.Settings.Default.MaxSpeed)
+                        {
+                            commandSpeed++;
+                        }
+                        else if (slope > slopeWanted && CommandSpeed > Properties.Settings.Default.MinimumAutoSpeed + 2)
+                        {
+                            commandSpeed--;
+                            commandSpeed--;
+                        }
+                        debugMessage = "slope = " + slope +
+                        "\nSlope Wanted = " + slopeWanted +
+                        "\nTDiff = " + tDiff +
+                        "\nCommandSpeed = " + CommandSpeed; // / // ***** Debugging *****
+                    }
+
                 }
             }
             if (oldCommandSpeed != commandSpeed)
@@ -195,7 +238,7 @@ namespace HighShearMixController
          * 
          * Algorithm:
         */
-        public void calculateEqSpeed()
+        /*public void calculateEqSpeed()
         {
             List<DataPoint> recentSamples = new List<DataPoint>();
             double avgDeriv = 0; // m
@@ -203,22 +246,22 @@ namespace HighShearMixController
             double slopeNeeded = 0;
             double speedMultiplier = 1;
             float eqSpeed = -1;
-
-            if(PredictedEqSpeed != -1)
+            
+            if (PredictedEqSpeed != -1)
             {
                 eqSpeed = PredictedEqSpeed;
             }            
 
             if(sampleData.Count >= 3)
             {
-                // Take and average up to the last 15 sample derivatives.
-                for(int count = sampleData.Count - 1; count > 2 && sampleData.Count - count < 15; count--)
+                // Take the last 60 samples.
+                for(int count = sampleData.Count - 1; count >= 2 && sampleData.Count - count < 60; count--)
                 {
                     recentSamples.Add(sampleData[count]);
                 }
-
+                
                 // Get average derivative and average original slope value.
-                for(int count = 0; count < recentSamples.Count; count++)
+                for (int count = 0; count < recentSamples.Count; count++)
                 {
                     avgDeriv += recentSamples[count].Derivative;
                     originalSlope += -1 * (avgDeriv * (recentSamples[count].Temp - startingTemp)) + recentSamples[count].Slope;
@@ -229,12 +272,19 @@ namespace HighShearMixController
                 slopeNeeded = -1 * (avgDeriv * Properties.Settings.Default.TargetTemperature - startingTemp);
                 speedMultiplier = slopeNeeded / originalSlope;
 
-                PredictedEqSpeed = (float) (commandSpeed * speedMultiplier);
+                eqSpeed = (float)(commandSpeed * speedMultiplier);
+
+                debugMessage = "EQ Temperature = " + (-1 * (originalSlope / avgDeriv) + startingTemp) +
+                    "\nEQ Speed = " + eqSpeed +
+                    "\nDerivative = " + avgDeriv +
+                    "\nOriginalSlope = " + originalSlope +
+                    "\nSlopeNeeded = " + slopeNeeded; // / // ***** Debugging *****
             }
 
-
+            //debugMessage = "Controller Debug: eqSpeed = " + eqSpeed; // ***** Debugging *****
+            eqSpeed = 45; // *************** for testing purposes **********************
             PredictedEqSpeed = eqSpeed;
-        }
+        }//*/
 
         public void setAlarmLevel(int level)
         {
@@ -285,18 +335,45 @@ namespace HighShearMixController
         public void restoreDrive()
         {
             drive.restore();
-        }        
+        }
+
+        private string sessionToString()
+        {
+            StringBuilder sb = new StringBuilder();
+
+            for (int row = 0; row < sampleData.Count(); row++)
+            {
+                TimeSpan ts = sampleData[row].Time;
+                string time = String.Format("{0:00}:{1:00}:{2:00}", ts.Hours, ts.Minutes, ts.Seconds);
+                sb.Append(time + "," + sampleData[row].Speed + "," + sampleData[row].Temp + "\n");
+            }
+
+            return sb.ToString();
+        }
+
+        public void saveSession()
+        {
+            DateTime date = new DateTime();
+            date = DateTime.Now;
+            TimeSpan ts = timer.Elapsed;
+            string fileName = "Mix1_" + date.ToLongDateString() + "_" +
+                String.Format("{0:00}:{1:00}:{2:00}", ts.Hours, ts.Minutes, ts.Seconds);
+            StreamWriter writer = new StreamWriter(fileName);
+            writer.WriteLine(sessionToString());
+
+            writer.Close();
+        }
     }
 
     class DataPoint
     {
-        private System.DateTime time;
+        private System.TimeSpan time;
         private float speed;
         private float temp;
         private float slope;
         private float derivative;
 
-        public DataPoint(System.DateTime ti, float sp, float te, float sl, float de)
+        public DataPoint(System.TimeSpan ti, float sp, float te, float sl, float de)
         {
             Time = ti;
             Speed = sp;
@@ -306,7 +383,7 @@ namespace HighShearMixController
             
         }
 
-        public DateTime Time { get => time; set => time = value; }
+        public TimeSpan Time { get => time; set => time = value; }
         public float Speed { get => speed; set => speed = value; }
         public float Temp { get => temp; set => temp = value; }
         public float Slope { get => slope; set => slope = value; }

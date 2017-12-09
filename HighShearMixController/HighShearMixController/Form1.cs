@@ -89,8 +89,10 @@ namespace HighShearMixController
             {
                 label9.Text = "VFD Connected";
                 label9.ForeColor = Color.DarkGreen;
-
-                labelEqSpeed.Text = "" + controller.PredictedEqSpeed;
+                if (!(controller.PredictedEqSpeed < 0))
+                {
+                    labelEqSpeed.Text = controller.PredictedEqSpeed + "Hz";
+                }
                 labelEqSpeed.ForeColor = Color.DarkGreen;
 
                 labelSpeed.Text = "" + controller.CurrentSpeed;
@@ -136,13 +138,13 @@ namespace HighShearMixController
                 {
                     button2.Enabled = true;
                 }
-                button3.Enabled = false;
+                button3.Enabled = true;
                 button4.Enabled = false;
                 
             }
             else if (controller.Automatic)
             {
-                button1.Enabled = false;
+                button1.Enabled = true;
                 button2.Enabled = false;
                 button3.Enabled = false;
                 if (!controller.DriveConn)
@@ -225,7 +227,9 @@ namespace HighShearMixController
             controller.Manual = true;
             controller.startDrive();            
             groupBox1.BackColor = Color.LightGray;
+            groupBox2.BackColor = Color.Transparent;
             updateLockdown();
+            recordingSession = true;
         }
 
         // Manual stop button
@@ -235,6 +239,7 @@ namespace HighShearMixController
             controller.stopDrive();            
             groupBox1.BackColor = Color.Transparent;
             updateLockdown();
+            recordingSession = false;
         }
 
         // Automatic start button
@@ -243,6 +248,7 @@ namespace HighShearMixController
             controller.Automatic = true;
             controller.startDrive();
             groupBox2.BackColor = Color.LightGray;
+            groupBox1.BackColor = Color.Transparent;
             updateLockdown();
             recordingSession = true;
         }
@@ -366,12 +372,12 @@ namespace HighShearMixController
 
                 if (recordingSession && pollCounter % Properties.Settings.Default.RecordInterval == 0)
                 {
-                    controller.calculateEqSpeed();                    
+                    controller.pollData();
+                    //controller.calculateEqSpeed();
+                    label13.Text = "Debug 1: " + pollCounter; //****** Debugging *****
                 }
-                
 
-                //label11.Text = pollCounter + "";
-
+                label14.Text = controller.debugMessage; //****** Debugging *****
                 updateStatus();
             }
         }
@@ -414,8 +420,9 @@ namespace HighShearMixController
             {
                 label12.ForeColor = Color.Black;
             }
-            
-            controller.calculateEqSpeed();
+
+            controller.pollData();
+            //controller.calculateEqSpeed();
             updateStatus();
         }
     }
