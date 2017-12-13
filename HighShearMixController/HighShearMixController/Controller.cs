@@ -94,7 +94,12 @@ namespace HighShearMixController
 
             if (result)
             {
-                timer.Start();
+                timer.Stop();
+            }
+
+            if (result)
+            {
+                saveSession();
             }
 
             return result;
@@ -166,18 +171,18 @@ namespace HighShearMixController
             {
                 if (sampleData.Count < 3)
                 {
-                    if (currentTemp < Properties.Settings.Default.TargetTemperature - 1)
+                    if (currentTemp < Properties.Settings.Default.TargetTemperature - Properties.Settings.Default.ControlRange)
                     {
                         commandSpeed = Properties.Settings.Default.MaxSpeed;
                     }
-                    if(currentTemp > Properties.Settings.Default.TargetTemperature + 1)
+                    if(currentTemp > Properties.Settings.Default.TargetTemperature + Properties.Settings.Default.ControlRange)
                     {
                         commandSpeed = Properties.Settings.Default.MinimumAutoSpeed;
                     }
                 }
                 else
                 {
-                    if (currentTemp < Properties.Settings.Default.TargetTemperature - 1)
+                    if (currentTemp < Properties.Settings.Default.TargetTemperature - Properties.Settings.Default.ControlRange)
                     {
                         commandSpeed = Properties.Settings.Default.MaxSpeed;
                     }
@@ -196,7 +201,7 @@ namespace HighShearMixController
                             slope += sampleData[size - count].Slope;
                         }
                         slope /= 10;
-                        float slopeWanted = tDiff * (float) 0.01;
+                        float slopeWanted = (tDiff * (float) 0.005) / Properties.Settings.Default.ControlRange;
                         
                         if(slope < slopeWanted && CommandSpeed < Properties.Settings.Default.MaxSpeed)
                         {
@@ -341,7 +346,7 @@ namespace HighShearMixController
         {
             StringBuilder sb = new StringBuilder();
 
-            for (int row = 0; row < sampleData.Count(); row++)
+            for (int row = 2; row < sampleData.Count()-1; row++)
             {
                 TimeSpan ts = sampleData[row].Time;
                 string time = String.Format("{0:00}:{1:00}:{2:00}", ts.Hours, ts.Minutes, ts.Seconds);

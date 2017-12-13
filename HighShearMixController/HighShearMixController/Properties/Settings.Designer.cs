@@ -130,5 +130,17 @@ namespace HighShearMixController.Properties {
                 this["RecordInterval"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("2")]
+        public float ControlRange {
+            get {
+                return ((float)(this["ControlRange"]));
+            }
+            set {
+                this["ControlRange"] = value;
+            }
+        }
     }
 }

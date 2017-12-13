@@ -3,17 +3,12 @@ High Shear Mix Controller
 
 Purpose: Regulate solution temperature by adjusting mix speed.
 
-	HSM - Added redundancy to stop command.
-	HSM - Fixed bugs in Controller.calculateEQSpeed
-	HSM - Discarded Controller.calculateEQSpeed. Not feasable with current hardware.
-	HSM - Redefined Controller.setSpeed. Now dynamically adjusts speed based on dynamic desired rate-of-change calculations.
-	HSM - Completed and tested Controller.setSpeed. It functions as desired.
-	HSM - Implemented Controller.saveSession.
+HSM - Added save commands to main and controller.stopDrive.
 
 
 ToDo List:
 	Improve command redundancies.
-	Add stop command to restoreDrive.
+	Fix automatic start/stop buttons - updateLockdown
 
 Features:
 

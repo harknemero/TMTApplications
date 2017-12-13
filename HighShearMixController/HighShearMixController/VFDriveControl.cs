@@ -113,7 +113,9 @@ namespace HighShearMixController
          * Assumes drive is properly connected.
          */
         public void restore()
-        {           
+        {
+            stop();
+
             List<byte> bytes = new List<byte>();
             
             // Revert to manual control.
