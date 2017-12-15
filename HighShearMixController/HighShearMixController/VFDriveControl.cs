@@ -196,30 +196,30 @@ namespace HighShearMixController
             {
                 // write response
                 case 0x06:
-                    if (command.Length != 8 || response.Length != 8)
+                    if (command.Length != 8 || response.Length != 16)
                     {
                         result = false;
                         break;
                     }
-                    for(int count = 0; count < 8; count++)
+                    if(response[10] != 0)
                     {
-                        if(command[count] != response[count])
-                        {
-                            result = false;
-                            break;
-                        }
+                        result = false;
                     }
                     break;
                 
                 // Read response
-                case 0x03: result = false;
-                    break;
-
-                case 0x53: result = false; // Error response for read
-                    break;
-
-                case 0x56: result = false; // Error response for write
-                    break;
+                case 0x03:
+                    if (command.Length != 8 || response.Length != 15)
+                    {
+                        result = false;
+                        break;
+                    }
+                    if (response[10] != 0)
+                    {
+                        result = false;
+                        break;
+                    }
+                    break;                    
 
                 default: result = false;
                     break;
@@ -268,7 +268,21 @@ namespace HighShearMixController
 
             unlockDrive();
             sendCommand(bytes);
+            rsData = (byte[])rsDataBuffer.Clone(); // Capture response before it is overwritten by next command.
             lockDriveAndParam();
+
+            result = checkResponse(bytes.ToArray(), rsData);
+
+            if (!result)
+            {
+                stop(); // redundant stop
+
+                unlockDrive();
+                sendCommand(bytes);
+                rsData = (byte[])rsDataBuffer.Clone(); // Capture response before it is overwritten by next command.
+                lockDriveAndParam();
+                result = checkResponse(bytes.ToArray(), rsData);
+            }
 
             return result;
         }
@@ -291,13 +305,17 @@ namespace HighShearMixController
             rsData = (byte[]) rsDataBuffer.Clone(); // Capture response before it is overwritten by next command.
             lockDriveAndParam();
 
-            /*if(!checkResponse(bytes.ToArray(), rsData))
+            result = checkResponse(bytes.ToArray(), rsData);
+
+            if(!result)
             {
+                lockDriveAndParam();
                 unlockDrive();
                 sendCommand(bytes);
                 rsData = (byte[])rsDataBuffer.Clone(); // Capture response before it is overwritten by next command.
                 lockDriveAndParam();
-            }*/ 
+                result = checkResponse(bytes.ToArray(), rsData);
+            } 
 
             return result;
         }
@@ -337,7 +355,7 @@ namespace HighShearMixController
         }
 
         /*
-         * 
+         * Returns actual speed.
          */
          public float getSpeed()
         {
@@ -382,11 +400,11 @@ namespace HighShearMixController
             System.Threading.Thread.Sleep(100);
             try
             {
-                rsData = getResponse(8);
+                rsData = getResponse(16);
             }
             catch { }
 
-            System.Threading.Thread.Sleep(100);
+            System.Threading.Thread.Sleep(50);
             drive.Close();
 
             if (rsData.Length > 0)
@@ -400,7 +418,7 @@ namespace HighShearMixController
         private void finishTask()
         {
             int maxWaits = 2;
-            int sleepLength = 50; //milliseconds
+            int sleepLength = 10; //milliseconds
             int count = 0;
 
             try
@@ -477,12 +495,9 @@ namespace HighShearMixController
             bytes.Add(0x59); bytes.Add(0xCB); // CRC bytes - pre calculated
             
             sendCommand(bytes);
-            if (rsDataBuffer.Length >= 8)
+            if (!checkResponse(bytes.ToArray(), rsDataBuffer))
             {
-                if (rsDataBuffer[6] == 0x00 && rsDataBuffer[7] == 0x00)
-                {
-                    sendCommand(bytes);
-                }
+                sendCommand(bytes);
             }
         }
 

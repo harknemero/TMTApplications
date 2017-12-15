@@ -3,12 +3,17 @@ High Shear Mix Controller
 
 Purpose: Regulate solution temperature by adjusting mix speed.
 
-HSM - Added save commands to main and controller.stopDrive.
+HSM - Fixed start/stop buttons to appropriately enable/disable. GUI now allows for seamless shifting between manual and automatic.
+HSM - Fixed save crash caused by using illegal characters in filename generation.
+HSM - Improved command redundancies for VFDriveControl. Error-response checking is now functional and triggers a resend of failed commands.
+HSM - Removed EQ speed feature, and references to it.
+HSM - Start/stop buttons no longer alter GUI unless the command is successful.
+HSM - Implemented manual save.
+HSM - Rewrote controller.setSpeed, controller.stopDrive, and other methods involved with setting command speed. Command speed (recorded in DataPoints) now shows zero when drive is stopped.
+HSM - Polling and recording now continues while drive is stopped.
 
 
 ToDo List:
-	Improve command redundancies.
-	Fix automatic start/stop buttons - updateLockdown
 
 Features:
 

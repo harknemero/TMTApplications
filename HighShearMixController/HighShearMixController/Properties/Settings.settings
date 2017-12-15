@@ -24,13 +24,16 @@
       <Value Profile="(Default)">100</Value>
     </Setting>
     <Setting Name="PollingInterval" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">1000</Value>
+      <Value Profile="(Default)">500</Value>
     </Setting>
     <Setting Name="RecordInterval" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">5</Value>
+      <Value Profile="(Default)">7</Value>
     </Setting>
     <Setting Name="ControlRange" Type="System.Single" Scope="User">
       <Value Profile="(Default)">2</Value>
+    </Setting>
+    <Setting Name="DefaultSaveLoc" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
     </Setting>
   </Settings>
 </SettingsFile>

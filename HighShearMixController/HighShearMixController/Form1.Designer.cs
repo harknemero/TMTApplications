@@ -30,16 +30,17 @@
         {
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.button6 = new System.Windows.Forms.Button();
+            this.label14 = new System.Windows.Forms.Label();
+            this.label13 = new System.Windows.Forms.Label();
             this.label11 = new System.Windows.Forms.Label();
             this.label10 = new System.Windows.Forms.Label();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.button5 = new System.Windows.Forms.Button();
-            this.labelEqSpeed = new System.Windows.Forms.Label();
             this.labelSpeed = new System.Windows.Forms.Label();
             this.labelTemp = new System.Windows.Forms.Label();
             this.label9 = new System.Windows.Forms.Label();
             this.label8 = new System.Windows.Forms.Label();
-            this.label7 = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
             this.label5 = new System.Windows.Forms.Label();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
@@ -55,9 +56,8 @@
             this.label2 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.textBox1 = new System.Windows.Forms.TextBox();
-            this.label13 = new System.Windows.Forms.Label();
-            this.label14 = new System.Windows.Forms.Label();
             this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
+            this.button7 = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -77,6 +77,8 @@
             // 
             // tabPage1
             // 
+            this.tabPage1.Controls.Add(this.button7);
+            this.tabPage1.Controls.Add(this.button6);
             this.tabPage1.Controls.Add(this.label14);
             this.tabPage1.Controls.Add(this.label13);
             this.tabPage1.Controls.Add(this.label11);
@@ -90,6 +92,33 @@
             this.tabPage1.Size = new System.Drawing.Size(624, 314);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.UseVisualStyleBackColor = true;
+            // 
+            // button6
+            // 
+            this.button6.Location = new System.Drawing.Point(242, 188);
+            this.button6.Name = "button6";
+            this.button6.Size = new System.Drawing.Size(83, 26);
+            this.button6.TabIndex = 9;
+            this.button6.Text = "Save Session";
+            this.button6.UseVisualStyleBackColor = true;
+            this.button6.Click += new System.EventHandler(this.button6_Click);
+            // 
+            // label14
+            // 
+            this.label14.AutoSize = true;
+            this.label14.Location = new System.Drawing.Point(17, 262);
+            this.label14.Name = "label14";
+            this.label14.Size = new System.Drawing.Size(0, 13);
+            this.label14.TabIndex = 6;
+            // 
+            // label13
+            // 
+            this.label13.AutoSize = true;
+            this.label13.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.label13.Location = new System.Drawing.Point(17, 215);
+            this.label13.Name = "label13";
+            this.label13.Size = new System.Drawing.Size(0, 13);
+            this.label13.TabIndex = 5;
             // 
             // label11
             // 
@@ -112,12 +141,10 @@
             // groupBox3
             // 
             this.groupBox3.Controls.Add(this.button5);
-            this.groupBox3.Controls.Add(this.labelEqSpeed);
             this.groupBox3.Controls.Add(this.labelSpeed);
             this.groupBox3.Controls.Add(this.labelTemp);
             this.groupBox3.Controls.Add(this.label9);
             this.groupBox3.Controls.Add(this.label8);
-            this.groupBox3.Controls.Add(this.label7);
             this.groupBox3.Controls.Add(this.label6);
             this.groupBox3.Controls.Add(this.label5);
             this.groupBox3.Location = new System.Drawing.Point(339, 6);
@@ -138,19 +165,6 @@
             this.button5.UseVisualStyleBackColor = true;
             this.button5.Visible = false;
             this.button5.Click += new System.EventHandler(this.button5_Click);
-            // 
-            // labelEqSpeed
-            // 
-            this.labelEqSpeed.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.labelEqSpeed.AutoSize = true;
-            this.labelEqSpeed.ForeColor = System.Drawing.Color.Red;
-            this.labelEqSpeed.Location = new System.Drawing.Point(201, 66);
-            this.labelEqSpeed.Name = "labelEqSpeed";
-            this.labelEqSpeed.RightToLeft = System.Windows.Forms.RightToLeft.No;
-            this.labelEqSpeed.Size = new System.Drawing.Size(22, 13);
-            this.labelEqSpeed.TabIndex = 7;
-            this.labelEqSpeed.Text = "NA";
-            this.labelEqSpeed.TextAlign = System.Drawing.ContentAlignment.TopRight;
             // 
             // labelSpeed
             // 
@@ -196,15 +210,6 @@
             this.label8.Size = new System.Drawing.Size(138, 13);
             this.label8.TabIndex = 3;
             this.label8.Text = "Thermometer Disconnected";
-            // 
-            // label7
-            // 
-            this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(6, 66);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(139, 13);
-            this.label7.TabIndex = 2;
-            this.label7.Text = "Predicted Equilibrium Speed";
             // 
             // label6
             // 
@@ -356,24 +361,15 @@
             this.textBox1.TabIndex = 0;
             this.textBox1.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
             // 
-            // label13
+            // button7
             // 
-            this.label13.AutoSize = true;
-            this.label13.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.label13.Location = new System.Drawing.Point(17, 215);
-            this.label13.Name = "label13";
-            this.label13.Size = new System.Drawing.Size(51, 13);
-            this.label13.TabIndex = 5;
-            this.label13.Text = "Debug 1:";
-            // 
-            // label14
-            // 
-            this.label14.AutoSize = true;
-            this.label14.Location = new System.Drawing.Point(17, 241);
-            this.label14.Name = "label14";
-            this.label14.Size = new System.Drawing.Size(51, 13);
-            this.label14.TabIndex = 6;
-            this.label14.Text = "Debug 2:";
+            this.button7.Location = new System.Drawing.Point(153, 188);
+            this.button7.Name = "button7";
+            this.button7.Size = new System.Drawing.Size(83, 26);
+            this.button7.TabIndex = 10;
+            this.button7.Text = "New Session";
+            this.button7.UseVisualStyleBackColor = true;
+            this.button7.Click += new System.EventHandler(this.button7_Click);
             // 
             // Form1
             // 
@@ -417,8 +413,6 @@
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Label label9;
         private System.Windows.Forms.Label label8;
-        private System.Windows.Forms.Label label7;
-        private System.Windows.Forms.Label labelEqSpeed;
         private System.Windows.Forms.Label labelSpeed;
         private System.Windows.Forms.Label labelTemp;
         private System.Windows.Forms.Label label10;
@@ -428,6 +422,8 @@
         private System.Windows.Forms.Label label13;
         private System.Windows.Forms.Label label14;
         private System.Windows.Forms.SaveFileDialog saveFileDialog1;
+        private System.Windows.Forms.Button button6;
+        private System.Windows.Forms.Button button7;
     }
 }
 

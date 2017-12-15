@@ -109,7 +109,7 @@ namespace HighShearMixController.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("1000")]
+        [global::System.Configuration.DefaultSettingValueAttribute("500")]
         public int PollingInterval {
             get {
                 return ((int)(this["PollingInterval"]));
@@ -121,7 +121,7 @@ namespace HighShearMixController.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("5")]
+        [global::System.Configuration.DefaultSettingValueAttribute("7")]
         public int RecordInterval {
             get {
                 return ((int)(this["RecordInterval"]));
@@ -140,6 +140,18 @@ namespace HighShearMixController.Properties {
             }
             set {
                 this["ControlRange"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string DefaultSaveLoc {
+            get {
+                return ((string)(this["DefaultSaveLoc"]));
+            }
+            set {
+                this["DefaultSaveLoc"] = value;
             }
         }
     }
