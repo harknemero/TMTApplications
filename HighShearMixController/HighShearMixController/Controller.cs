@@ -145,7 +145,7 @@ namespace HighShearMixController
             }
             sampleData.Add(dp);
             //debugMessage = "Controller Debug: SampleData.Count = " + sampleData.Count(); *****Debugging*****
-            debugMessage = "";
+            //debugMessage = "";
         }
 
         /*
@@ -261,7 +261,7 @@ namespace HighShearMixController
         public bool checkThermConn()
         {
             bool result = therm.isConnected();
-            //result = true; // ********************************************* for testing
+            result = true; // ********************************************* for testing
             ThermConn = result;
 
             return result; 

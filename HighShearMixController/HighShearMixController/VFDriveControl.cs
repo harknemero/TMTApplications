@@ -122,7 +122,7 @@ namespace HighShearMixController
             // 0x_01_06_00_65_00_00
             bytes.Add(networkAddress); bytes.Add(writeSingleReg);
             bytes.Add(0x00); bytes.Add(0x65); // Register Address
-            bytes.Add(0x00); bytes.Add(0x00); // 6 = Network control
+            bytes.Add(0x00); bytes.Add(0x00); // 0 = manual control
             calculateCRC(bytes); // Add CRC bytes
 
             unlockParam();
@@ -135,6 +135,18 @@ namespace HighShearMixController
         {
             bool result = false;
 
+            int timeOut = 0;
+            while (portBusy)
+            {
+                timeOut++;
+                System.Threading.Thread.Sleep(1);
+                if(timeOut >2000)
+                {
+                    return false;
+                }
+            }
+            portBusy = true;
+            System.Threading.Thread.Sleep(25);
             int rsLength = 0;
             if(bytes[1] == 0x03)
             {
@@ -149,16 +161,24 @@ namespace HighShearMixController
             {
                 drive.Open();
                 drive.DiscardInBuffer();
+                drive.DiscardOutBuffer();                
                 drive.Write(bytes.ToArray(), 0, bytes.Count);
                 finishTask();
                 rsDataBuffer = getResponse(rsLength);
             }
             catch
             {
+                portBusy = false;
+                try
+                {
+                    drive.Close();
+                }
+                catch{}
                 return false;
             }            
             
             drive.Close();
+            portBusy = false;
             return result;
         }
 
@@ -231,22 +251,25 @@ namespace HighShearMixController
                 sb.Append("Command Failed.\nCommand: ");
                 for(int count = 0; count < command.Length; count++)
                 {
-                    sb.Append(command[count]);
+                    sb.Append(command[count] + "_");
                 }
                 sb.Append("\nResponse: ");
-                if(response.Length == 0)
+                if(response[13] == 0 & response[14] == 0)
                 {
-                    sb.Append("No Response");
+                    sb.Append("Error Code: " + response[10]);
                 }
                 else
                 {
                     for(int count = 0; count < response.Length; count++)
                     {
-                        sb.Append(response[count]);
+                        sb.Append(response[count] + "_");
                     }
                 }
+                //throw new System.ArgumentException(sb.ToString()); //***** For debugging only *****
             }
             Warning = sb.ToString();
+
+            
 
             return result;
         }
@@ -309,7 +332,6 @@ namespace HighShearMixController
 
             if(!result)
             {
-                lockDriveAndParam();
                 unlockDrive();
                 sendCommand(bytes);
                 rsData = (byte[])rsDataBuffer.Clone(); // Capture response before it is overwritten by next command.
@@ -417,7 +439,7 @@ namespace HighShearMixController
         // This may not be necessary and is effectively only a stub for now.
         private void finishTask()
         {
-            int maxWaits = 2;
+            int maxWaits = 3;
             int sleepLength = 10; //milliseconds
             int count = 0;
 
@@ -466,6 +488,15 @@ namespace HighShearMixController
             bytes.Add(0x89); bytes.Add(0xC5); // CRC bytes - pre calculated
             
             sendCommand(bytes);
+            if (!checkResponse(bytes.ToArray(), rsDataBuffer))
+            {
+                resetState();
+                sendCommand(bytes);
+                if (!checkResponse(bytes.ToArray(), rsDataBuffer))
+                {
+                    //throw new System.ArgumentException("Unlock Drive failure.");
+                }
+            }
         }
 
         /*  
@@ -497,7 +528,31 @@ namespace HighShearMixController
             sendCommand(bytes);
             if (!checkResponse(bytes.ToArray(), rsDataBuffer))
             {
+                resetState();
+            }
+        }
+
+        /*
+         * Reset Drive state through a simple series of steps to ensure a
+         * reproducable functioning state. Only necessary when writing to drive.
+        */
+        private void resetState()
+        {
+            List<byte> bytes = new List<byte>();
+            // Lock drive with 0x_01_06_00_01_00_02
+            bytes.Add(networkAddress); bytes.Add(writeSingleReg); bytes.Add(0x00);
+            bytes.Add(0x01); bytes.Add(0x00); bytes.Add(0x02);
+            bytes.Add(0x59); bytes.Add(0xCB); // CRC bytes - pre calculated
+
+            sendCommand(bytes);
+            if (!checkResponse(bytes.ToArray(), rsDataBuffer))
+            {
+                System.Threading.Thread.Sleep(50);
                 sendCommand(bytes);
+                if (!checkResponse(bytes.ToArray(), rsDataBuffer))
+                {
+                    //throw new System.ArgumentException("Lock Drive failure.");
+                }
             }
         }
 

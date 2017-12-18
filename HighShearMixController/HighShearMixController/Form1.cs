@@ -95,7 +95,10 @@ namespace HighShearMixController
                 labelSpeed.ForeColor = Color.Red;
             }
 
-            label11.Text = controller.getDriveWarning();
+            if (controller.getDriveWarning() != "")
+            {
+                label11.Text = controller.getDriveWarning();
+            }
             controller.setAlarmLevel(decideOverallAlarmLevel());
             updateLockdown();
             decideOverallAlarmLevel();
@@ -224,6 +227,7 @@ namespace HighShearMixController
                 groupBox2.BackColor = Color.Transparent;
                 updateLockdown();
                 recordingSession = true;
+                pollNow = true;
             }
         }
 
@@ -250,6 +254,7 @@ namespace HighShearMixController
                 groupBox1.BackColor = Color.Transparent;
                 updateLockdown();
                 recordingSession = true;
+                pollNow = true;
             }
         }
 
@@ -380,6 +385,7 @@ namespace HighShearMixController
                 // If pollNow flag is set, unset flag. Otherwise, sleep.
                 if (pollNow)
                 {
+                    pollCounter = 1;
                     pollNow = false;
                 }
                 else
