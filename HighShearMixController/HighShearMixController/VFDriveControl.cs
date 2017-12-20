@@ -30,6 +30,7 @@ namespace HighShearMixController
         {
             portBusy = false;
             rsData = new byte[] {};
+            rsDataBuffer = new byte[] {};
             drive = new SerialPort();
             drive.BaudRate = 115200;
             drive.DataBits = 8;
@@ -146,7 +147,7 @@ namespace HighShearMixController
                 }
             }
             portBusy = true;
-            System.Threading.Thread.Sleep(25);
+            System.Threading.Thread.Sleep(10); // wait for data
             int rsLength = 0;
             if(bytes[1] == 0x03)
             {
@@ -161,7 +162,7 @@ namespace HighShearMixController
             {
                 drive.Open();
                 drive.DiscardInBuffer();
-                drive.DiscardOutBuffer();                
+                drive.DiscardOutBuffer();
                 drive.Write(bytes.ToArray(), 0, bytes.Count);
                 finishTask();
                 rsDataBuffer = getResponse(rsLength);
@@ -187,16 +188,17 @@ namespace HighShearMixController
         */
         private byte[] getResponse(int byteNum)
         {
-
+            byte[] response = new byte[byteNum];
+            
             try
-            {
-                byte[] response = new byte[byteNum];
+            {                
                 drive.Read(response, 0, byteNum);
                 return response;
             }
             catch
             {
                 byte[] emptyBytes = { };
+                throw new System.ArgumentException("Failed on GetResponse.");
                 return emptyBytes;
             }
         }
@@ -488,11 +490,13 @@ namespace HighShearMixController
             bytes.Add(0x89); bytes.Add(0xC5); // CRC bytes - pre calculated
             
             sendCommand(bytes);
-            if (!checkResponse(bytes.ToArray(), rsDataBuffer))
+            rsData = (byte[])rsDataBuffer.Clone();
+            if (!checkResponse(bytes.ToArray(), rsData))
             {
                 resetState();
                 sendCommand(bytes);
-                if (!checkResponse(bytes.ToArray(), rsDataBuffer))
+                rsData = (byte[])rsDataBuffer.Clone();
+                if (!checkResponse(bytes.ToArray(), rsData))
                 {
                     //throw new System.ArgumentException("Unlock Drive failure.");
                 }
@@ -526,7 +530,8 @@ namespace HighShearMixController
             bytes.Add(0x59); bytes.Add(0xCB); // CRC bytes - pre calculated
             
             sendCommand(bytes);
-            if (!checkResponse(bytes.ToArray(), rsDataBuffer))
+            rsData = (byte[])rsDataBuffer.Clone();
+            if (!checkResponse(bytes.ToArray(), rsData))
             {
                 resetState();
             }
@@ -545,11 +550,13 @@ namespace HighShearMixController
             bytes.Add(0x59); bytes.Add(0xCB); // CRC bytes - pre calculated
 
             sendCommand(bytes);
-            if (!checkResponse(bytes.ToArray(), rsDataBuffer))
+            rsData = (byte[])rsDataBuffer.Clone();
+            if (!checkResponse(bytes.ToArray(), rsData))
             {
                 System.Threading.Thread.Sleep(50);
                 sendCommand(bytes);
-                if (!checkResponse(bytes.ToArray(), rsDataBuffer))
+                rsData = (byte[])rsDataBuffer.Clone();
+                if (!checkResponse(bytes.ToArray(), rsData))
                 {
                     //throw new System.ArgumentException("Lock Drive failure.");
                 }

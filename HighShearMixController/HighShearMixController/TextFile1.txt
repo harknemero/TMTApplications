@@ -3,15 +3,13 @@ High Shear Mix Controller
 
 Purpose: Regulate solution temperature by adjusting mix speed.
 
-HSM - Now sets speed immediately after starting mix. (no long delay on startup)
-HSM - Revamped VFDriveControl redundancy. SendCommand now waits for portBusy to be false, sets portBusy to true until finished.
+HSM - Found and resolved brief-start bug. Start buttons now start mixer without momentarily stopping right after startup.
+HSM - Expanded window for temp adjustment. Controller now over/undershoots target temp by .25 C.
 
 
 ToDo List:
 	SendCommand sometimes loads response from wrong command when calling getResponse.
-	Remove debug commands for slope
-	Broaden window for temp adjustment. Instead of converging at zero slope on target, converge to within a range 
-	on target. Behave as if overshooting and undershooting by .25 C (arbitrary value) is planned.
+	Remove debug commands for slope.
 
 Features:
 

@@ -219,15 +219,19 @@ namespace HighShearMixController
         // Manual start button
         private void button1_Click(object sender, EventArgs e)
         {
+            controller.Manual = true;
             if (controller.startDrive())
             {
-                controller.Manual = true;
                 controller.Automatic = false;
                 groupBox1.BackColor = Color.LightGray;
                 groupBox2.BackColor = Color.Transparent;
                 updateLockdown();
                 recordingSession = true;
                 pollNow = true;
+            }
+            else
+            {
+                controller.Manual = false;
             }
         }
 
@@ -246,15 +250,19 @@ namespace HighShearMixController
         // Automatic start button
         private void button3_Click(object sender, EventArgs e)
         {
+            controller.Automatic = true;
             if (controller.startDrive())
             {
-                controller.Automatic = true;
                 controller.Manual = false;
                 groupBox2.BackColor = Color.LightGray;
                 groupBox1.BackColor = Color.Transparent;
                 updateLockdown();
                 recordingSession = true;
                 pollNow = true;
+            }
+            else
+            {
+                controller.Automatic = false;
             }
         }
 

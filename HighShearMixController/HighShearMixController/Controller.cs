@@ -76,9 +76,9 @@ namespace HighShearMixController
 
             if (result)
             {
-                timer.Start();
-                setSpeed();
                 manualSpeedChanged = true;
+                timer.Start();
+                setSpeed();                
             }
 
             return result;
@@ -186,7 +186,8 @@ namespace HighShearMixController
                         {
                             int size = sampleData.Count - 1;
                             int samples = size;
-                            float tDiff = Properties.Settings.Default.TargetTemperature - currentTemp;
+                            float targetTemp = Properties.Settings.Default.TargetTemperature;
+                            float tDiff = 0;
                             float slope = 0;
                             if (samples >= 10)
                             {
@@ -197,7 +198,16 @@ namespace HighShearMixController
                                 slope += sampleData[size - count].Slope;
                             }
                             slope /= 10;
-                            float slopeWanted = (tDiff * (float)0.005) / Properties.Settings.Default.ControlRange;
+
+                            if(currentTemp < targetTemp)
+                            {
+                                tDiff = targetTemp - currentTemp + (float) .25;
+                            }
+                            else
+                            {
+                                tDiff = targetTemp - currentTemp - (float) .25;
+                            }
+                            float slopeWanted = (tDiff * (float)0.007) / Properties.Settings.Default.ControlRange;
 
                             if (slope < slopeWanted && CommandSpeed < Properties.Settings.Default.MaxSpeed)
                             {
@@ -261,7 +271,7 @@ namespace HighShearMixController
         public bool checkThermConn()
         {
             bool result = therm.isConnected();
-            result = true; // ********************************************* for testing
+            //result = true; // ********************************************* for testing
             ThermConn = result;
 
             return result; 
