@@ -3,13 +3,14 @@ High Shear Mix Controller
 
 Purpose: Regulate solution temperature by adjusting mix speed.
 
-HSM - Found and resolved brief-start bug. Start buttons now start mixer without momentarily stopping right after startup.
-HSM - Expanded window for temp adjustment. Controller now over/undershoots target temp by .25 C.
+HSM - Added a timestamp to Form1 indicating the time that automatic control and session recording began.
 
 
 ToDo List:
 	SendCommand sometimes loads response from wrong command when calling getResponse.
 	Remove debug commands for slope.
+	Delay is too long to determine connectivity.
+	If application starts without connectivity then it never detects connectivity.
 
 Features:
 

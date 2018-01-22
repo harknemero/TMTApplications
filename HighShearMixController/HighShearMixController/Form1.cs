@@ -226,7 +226,6 @@ namespace HighShearMixController
                 groupBox1.BackColor = Color.LightGray;
                 groupBox2.BackColor = Color.Transparent;
                 updateLockdown();
-                recordingSession = true;
                 pollNow = true;
             }
             else
@@ -253,12 +252,16 @@ namespace HighShearMixController
             controller.Automatic = true;
             if (controller.startDrive())
             {
+                if (!recordingSession)
+                {
+                    label7.Text = "Started at: " + System.DateTime.Now.ToShortTimeString();
+                }
                 controller.Manual = false;
                 groupBox2.BackColor = Color.LightGray;
                 groupBox1.BackColor = Color.Transparent;
                 updateLockdown();
                 recordingSession = true;
-                pollNow = true;
+                pollNow = true;                
             }
             else
             {
@@ -384,8 +387,6 @@ namespace HighShearMixController
         {
             BackgroundWorker worker = sender as BackgroundWorker;
             int pollCounter = 0;
-            bool driveConn = false;
-            bool thermConn = false;
             while (continuePolling)
             {
                 pollCounter++;
@@ -399,11 +400,6 @@ namespace HighShearMixController
                 else
                 {
                     System.Threading.Thread.Sleep(Properties.Settings.Default.PollingInterval);
-                }
-
-                if (driveConn != controller.DriveConn || thermConn != controller.ThermConn)
-                {
-                    updateStatus();
                 }
 
                 if (pollCounter % Properties.Settings.Default.RecordInterval == 1)

@@ -299,6 +299,9 @@ namespace HighShearMixController
         {
             StringBuilder sb = new StringBuilder();
 
+            sb.Append(System.DateTime.Now.ToLongDateString() + "," + System.DateTime.Now.ToLongTimeString());
+            sb.AppendLine();
+
             for (int row = 2; row < sampleData.Count()-1; row++)
             {
                 TimeSpan ts = sampleData[row].Time;
