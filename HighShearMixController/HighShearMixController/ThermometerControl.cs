@@ -82,6 +82,11 @@ namespace HighShearMixController
                 result = true;
             }
 
+            if (!result)
+            {
+                result = openTherm();
+            }
+
             return result; 
         }
     }

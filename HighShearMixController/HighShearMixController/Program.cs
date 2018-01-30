@@ -21,6 +21,7 @@ namespace HighShearMixController
             Application.Run(form);
 
             controller.restoreDrive();
+            controller.saveSession();
             Properties.Settings.Default.Save();
         }
     }

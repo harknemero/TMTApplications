@@ -45,7 +45,7 @@ namespace HighShearMixController
         }
 
         /*
-         * Opend a connection to the drive through its comm port.
+         * Open a connection to the drive through its comm port.
         */
         public bool openDrive()
         {
@@ -199,7 +199,6 @@ namespace HighShearMixController
             {
                 byte[] emptyBytes = { };
                 throw new System.ArgumentException("Failed on GetResponse.");
-                return emptyBytes;
             }
         }
 
@@ -411,6 +410,7 @@ namespace HighShearMixController
             {
                 drive.Open();
                 drive.DiscardInBuffer();
+                Warning = " ";
             }
             catch
             {
@@ -421,7 +421,7 @@ namespace HighShearMixController
             // Set security bit on drive register.
             byte[] testByte = new byte[] { 0x01, 0x06, 0x00, 0x01, 0x00, 0x02, 0x59, 0xCB };
             drive.Write(testByte, 0, 8);
-            System.Threading.Thread.Sleep(100);
+            System.Threading.Thread.Sleep(50);
             try
             {
                 rsData = getResponse(16);

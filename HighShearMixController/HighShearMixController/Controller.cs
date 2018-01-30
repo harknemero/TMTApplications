@@ -26,6 +26,7 @@ namespace HighShearMixController
         private System.Diagnostics.Stopwatch timer;
         private List<DataPoint> data;
         private List<DataPoint> sampleData;
+        private string fileName;
         public string debugMessage = "";    // For testing/debugging only.
 
         private static int maxAlarmLevel = 2;
@@ -58,6 +59,7 @@ namespace HighShearMixController
             currentSpeed = 0;
             currentTemp = -50;
             startingTemp = -50;
+            fileName = "";
             
             //thermConn = therm.isConnected();
             //driveConn = drive.isConnected();
@@ -313,7 +315,12 @@ namespace HighShearMixController
             return sb.ToString();
         }
 
-        public void saveSession(string fileName)
+        public void setFileName(string name)
+        {
+            fileName = name;
+        }
+
+        public void saveSession()
         {
             if (sampleData.Count() > 3)
             {

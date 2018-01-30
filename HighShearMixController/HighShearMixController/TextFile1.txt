@@ -3,7 +3,10 @@ High Shear Mix Controller
 
 Purpose: Regulate solution temperature by adjusting mix speed.
 
-HSM - Added a timestamp to Form1 indicating the time that automatic control and session recording began.
+HSM - Fixed manual speed range to be inclusive of upper bound.
+HSM - Now saves automatically upon exiting program.
+HSM - Now requires user to enter Work Order data before enabling mix start.
+HSM - Now displays automatic start-time. Data file also records time and date.
 
 
 ToDo List:
