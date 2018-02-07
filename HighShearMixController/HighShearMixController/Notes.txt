@@ -10,7 +10,6 @@ HSM - Now displays automatic start-time. Data file also records time and date.
 
 
 ToDo List:
-	SendCommand sometimes loads response from wrong command when calling getResponse.
 	Remove debug commands for slope.
 	Delay is too long to determine connectivity.
 	If application starts without connectivity then it never detects connectivity.
@@ -22,21 +21,29 @@ Features:
 			Speed input box - limits input to acceptable range of values.
 			Start/Stop buttons - buttons are disabled/enabled appropriately
 		Automatic
-			Temperature input box - bounded by maximum temperature. Low temperatures will result in triggering the alarm.
+			Temperature input box - bounded by maximum temperature. Alarm is activated if current temp exceeds target.
+				As a control feature, this input box can no longer be set by user.
 			Start/Stop Buttons - buttons are disabled/enabled appropriately
 		Status
 			Displays connection status of thermometer and SMV
 			Displays current solution temperature - Temperature colorized to warn of temperatures above target.
 			Displays current speed
-			Displays predicted equilibrium temperature
+		Batch ID Input
+			Constructs a csv file name based on ID input
+	Other Components and Features:
+		Data Logging
+			Upon exiting program, all speed/time/temperature data is saved in a csv.
+		VFD Setup and Takedown
+			On startup, the program configures the VFD for network control.
+			On takedown, the program configures the VFD for manual control.
+		Connection Handling
+			If thermocouple or VFD is disconnected during operation, program will lockdown and prompt user to reconnect.
 	Potential features:
 		Alarm settings & control **** Assessing alarm level is set up in the GUI and Controller. Needs output device. ****
 			Acceptable range from target settings
 			Warning light control
 			Hazard light & audio alarm control
 
-**REMINDERS**
-	form1.lockdown must be initialized to true when false is no longer needed for testing.
 
 
 VFD RS 485 Modbus Protocol Reference
