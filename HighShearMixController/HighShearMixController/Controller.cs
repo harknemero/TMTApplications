@@ -11,6 +11,7 @@ namespace HighShearMixController
     {
         private ThermometerControl therm;
         private VFDriveControl drive;
+        private AlarmControl alarm;
         private int alarmLevel;
         private float currentSpeed;
         private float commandSpeed;
@@ -18,6 +19,7 @@ namespace HighShearMixController
         private float startingTemp;
         private bool manual;
         private bool automatic;
+    private bool alarmConn;
         private bool thermConn;
         private bool driveConn;
         private bool targetTempChanged;     // Flag for speed setting and datapolling
@@ -34,6 +36,7 @@ namespace HighShearMixController
 
         public bool Manual { get => manual; set => manual = value; }
         public bool Automatic { get => automatic; set => automatic = value; }
+    public bool AlarmConn { get => alarm.isConnected(); }
         public bool ThermConn { get => thermConn; set => thermConn = value; }
         public bool DriveConn { get => driveConn; set => driveConn = value; }
         public static int MaxAlarmLevel { get => maxAlarmLevel;}
@@ -47,6 +50,7 @@ namespace HighShearMixController
         {
             therm = new ThermometerControl();
             drive = new VFDriveControl();
+            alarm = new AlarmControl();
             data = new List<DataPoint>();
             sampleData = new List<DataPoint>();
             timer = new System.Diagnostics.Stopwatch();
@@ -110,6 +114,18 @@ namespace HighShearMixController
             return temp;
         }
 
+        // Gets connection status if any controllers are disconnected
+        public string getMessage()
+        {
+      string message = "";
+      if (!therm.isConnected()) message += "Thermometer ";
+      if (!drive.isConnected()) message += "VF Drive ";
+      if (!alarm.isConnected()) message += "Alarm ";
+      if (message != "") message += "is disconnected";
+
+      return message;
+        }
+
         /*
          * Creates a new datapoint from manual speed, temperature, and time 
         */
@@ -138,7 +154,7 @@ namespace HighShearMixController
                 }
             }
 
-            dp = new DataPoint(timer.Elapsed, commandSpeed, currentTemp, slope, derivative);
+            dp = new DataPoint(timer.Elapsed, commandSpeed, currentTemp, slope, derivative, getMessage());
 
             if (commandSpeedChanged)
             {
@@ -243,6 +259,7 @@ namespace HighShearMixController
 
         public void getCurrentSpeed()
         {
+      if (!drive.isConnected()) return;
             currentSpeed = drive.getSpeed();
         }
 
@@ -269,6 +286,17 @@ namespace HighShearMixController
         {
             return drive.Warning;
         }
+
+    public bool checkAlarmConn()
+    {
+      if (!alarm.isConnected())
+      {
+        alarm.openAlarm();
+      }
+      bool result = alarm.isConnected();
+
+      return result;
+    }
 
         public bool checkThermConn()
         {
@@ -297,6 +325,21 @@ namespace HighShearMixController
             drive.restore();
         }
 
+    public void alarmStandBy()
+    {
+      alarm.standBy();
+    }
+
+    public void alarmArm()
+    {
+      alarm.arm();
+    }
+
+    public void alarmActivate()
+    {
+      alarm.activate();
+    }
+
         private string sessionToString()
         {
             StringBuilder sb = new StringBuilder();
@@ -308,7 +351,7 @@ namespace HighShearMixController
             {
                 TimeSpan ts = sampleData[row].Time;
                 string time = String.Format("{0:00}:{1:00}:{2:00}", ts.Hours, ts.Minutes, ts.Seconds);
-                sb.Append(time + "," + sampleData[row].Speed + "," + sampleData[row].Temp);
+                sb.Append(time + "," + sampleData[row].Speed + "," + sampleData[row].Temp + "," + sampleData[row].Message);
                 sb.AppendLine();
             }
 
@@ -365,15 +408,16 @@ namespace HighShearMixController
         private float temp;
         private float slope;
         private float derivative;
+        private string message;
 
-        public DataPoint(System.TimeSpan ti, float sp, float te, float sl, float de)
+        public DataPoint(System.TimeSpan ti, float sp, float te, float sl, float de, string msg)
         {
             Time = ti;
             Speed = sp;
             Temp = te;
             Slope = sl;
             Derivative = de;
-            
+            message = msg;
         }
 
         public TimeSpan Time { get => time; set => time = value; }
@@ -381,5 +425,6 @@ namespace HighShearMixController
         public float Temp { get => temp; set => temp = value; }
         public float Slope { get => slope; set => slope = value; }
         public float Derivative { get => derivative; set => derivative = value; }
+        public string Message { get => message; set => message = value; }
     }
 }

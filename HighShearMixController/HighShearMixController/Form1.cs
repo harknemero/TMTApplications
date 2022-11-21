@@ -22,6 +22,7 @@ namespace HighShearMixController
         private bool continuePolling;
         private bool pollNow;
         private bool recordingSession;
+    private bool processRunning = false;
 
         public Form1(Controller c)
         {
@@ -34,14 +35,15 @@ namespace HighShearMixController
             recordingSession = false;
             InitializeComponent();
 
-            textBox1.Text = Properties.Settings.Default.ManualSpeed + "";
-            textBox2.Text = Properties.Settings.Default.TargetTemperature + "";
+            mixSpeedTextBox.Text = Properties.Settings.Default.ManualSpeed + "";
+            tempTextBox.Text = Properties.Settings.Default.TargetTemperature + "";
             label12.Text = Properties.Settings.Default.MinimumAutoSpeed + "Hz - 60.0Hz";
 
+      controller.checkAlarmConn();
             updateStatus();
 
             runPoller(); // ******** renders debugger unusable - toggle with button5 for testing.
-            //button5.Enabled = true; button5.Visible = true; // ************************************ for testing
+            //pollButton.Enabled = true; pollButton.Visible = true; // ************************************ for testing
         }
 
 
@@ -50,52 +52,64 @@ namespace HighShearMixController
         {
             if (controller.ThermConn)
             {
-                label8.Text = "Thermometer Connected";
-                label8.ForeColor = Color.DarkGreen;
+                thermStatusLabel.Text = "Thermometer Connected";
+                thermStatusLabel.ForeColor = Color.DarkGreen;
 
                 float temp = controller.getTemp();
-                labelTemp.Text = temp + " C";
+                tempLabel.Text = temp + " C";
 
-                if (temp - Properties.Settings.Default.WarningRange > double.Parse(textBox2.Text))
+                if (temp - Properties.Settings.Default.WarningRange > double.Parse(tempTextBox.Text))
                 {
                     temperatureAlarm = 2;
-                    labelTemp.ForeColor = Color.Red;
+                    tempLabel.ForeColor = Color.Red;
                     label5.ForeColor = Color.Red;
                 }
-                else if (temp > double.Parse(textBox2.Text))
+                else if (temp > double.Parse(tempTextBox.Text))
                 {
                     temperatureAlarm = 1;
-                    labelTemp.ForeColor = Color.Orange;
+                    tempLabel.ForeColor = Color.Orange;
                     label5.ForeColor = Color.Orange;
                 }
                 else
                 {
                     temperatureAlarm = 0;
-                    labelTemp.ForeColor = Color.DarkGreen;
+                    tempLabel.ForeColor = Color.DarkGreen;
                     label5.ForeColor = Color.DarkGreen;
                 }
             }
             else
             {
-                labelTemp.ForeColor = Color.Red;
+                tempLabel.ForeColor = Color.Red;
                 label5.ForeColor = Color.Red;
-                label8.Text = "Thermometer Disconnected";
-                label8.ForeColor = Color.Red;
+                thermStatusLabel.Text = "Thermometer Disconnected";
+                thermStatusLabel.ForeColor = Color.Red;
             }
+
             if (controller.DriveConn)
             {
-                label9.Text = "VFD Connected";
-                label9.ForeColor = Color.DarkGreen;
-                labelSpeed.Text = "" + controller.CurrentSpeed;
-                labelSpeed.ForeColor = Color.DarkGreen;
+                vfdStatusLabel.Text = "VFD Connected";
+                vfdStatusLabel.ForeColor = Color.DarkGreen;
+                speedLabel.Text = "" + controller.CurrentSpeed;
+                speedLabel.ForeColor = Color.DarkGreen;
 
             }
             else
             {
-                label9.Text = "VFD Disconnected";
-                label9.ForeColor = Color.Red;
-                labelSpeed.ForeColor = Color.Red;
+                vfdStatusLabel.Text = "VFD Disconnected";
+                vfdStatusLabel.ForeColor = Color.Red;
+                speedLabel.ForeColor = Color.Red;
             }
+
+            if (controller.AlarmConn)
+      {
+        alarmStatusLabel.Text = "Alarm Connected";
+        alarmStatusLabel.ForeColor = Color.DarkGreen;
+      }
+      else
+      {
+        alarmStatusLabel.Text = "Alarm Disconnected";
+        alarmStatusLabel.ForeColor = Color.Red;
+      }
 
             if (controller.getDriveWarning() != "")
             {
@@ -104,7 +118,25 @@ namespace HighShearMixController
             controller.setAlarmLevel(decideOverallAlarmLevel());
             updateLockdown();
             decideOverallAlarmLevel();
+      updateAlarm();
         }
+
+    private void updateAlarm()
+    {
+      if (!processRunning)
+      {
+        controller.alarmStandBy();
+      }
+      else if (!controller.ThermConn || !controller.DriveConn || 
+        controller.CurrentTemp > Properties.Settings.Default.TargetTemperature + Properties.Settings.Default.HazardRange)
+      {
+        controller.alarmActivate();
+      }
+      else
+      {
+        controller.alarmArm();
+      }
+    }
 
         // If either the drive or thermometer are not connected, disable all start buttons.
         // If drive is disconnected, disable all buttons.
@@ -123,46 +155,46 @@ namespace HighShearMixController
 
             if (controller.Manual)
             {
-                button1.Enabled = false;
+                manStartButton.Enabled = false;
                 if (!controller.DriveConn)
                 {
-                    button2.Enabled = false;
+                    manStopButton.Enabled = false;
                 }
                 else
                 {
-                    button2.Enabled = true;
+                    manStopButton.Enabled = true;
                 }
-                button3.Enabled = true;
-                button4.Enabled = true;
+                autStartButton.Enabled = true;
+                autStopButton.Enabled = true;
 
             }
             else if (controller.Automatic)
             {
-                button1.Enabled = true;
-                button2.Enabled = false;
-                button3.Enabled = false;
+                manStartButton.Enabled = true;
+                manStopButton.Enabled = false;
+                autStartButton.Enabled = false;
                 if (!controller.DriveConn)
                 {
-                    button4.Enabled = false;
+                    autStopButton.Enabled = false;
                 }
                 else
                 {
-                    button4.Enabled = true;
+                    autStopButton.Enabled = true;
                 }
             }
             else
             {
-                button2.Enabled = false;
-                button4.Enabled = false;
+                manStopButton.Enabled = false;
+                autStopButton.Enabled = false;
                 if (lockdown)
                 {
-                    button1.Enabled = false;
-                    button3.Enabled = false;
+                    manStartButton.Enabled = false;
+                    autStartButton.Enabled = false;
                 }
                 else
                 {
-                    button1.Enabled = true;
-                    button3.Enabled = true;
+                    manStartButton.Enabled = true;
+                    autStartButton.Enabled = true;
                 }
             }
         }
@@ -181,7 +213,7 @@ namespace HighShearMixController
                     { // Drive is running, but not connected
                         overallAlarm += 2;
                     }
-                    else if (labelTemp.Text != "Unknown" && controller.Automatic)
+                    else if (tempLabel.Text != "Unknown" && controller.Automatic)
                     { // Therm was connected before, but has become disconnected, running on automatic
                         overallAlarm += 2;
                     }
@@ -202,7 +234,7 @@ namespace HighShearMixController
             }
             controller.setAlarmLevel(overallAlarm);
 
-            if (labelTemp.Text == "Unknown")
+            if (tempLabel.Text == "Unknown")
             {
                 label10.Text = "Alarm Level " + overallAlarm + "     Process not initiatied.";
             }
@@ -215,7 +247,7 @@ namespace HighShearMixController
         }
 
         // Manual start button
-        private void button1_Click(object sender, EventArgs e)
+        private void manStartButton_Click(object sender, EventArgs e)
         {
             controller.Manual = true;
             if (controller.startDrive())
@@ -225,7 +257,8 @@ namespace HighShearMixController
                 groupBox2.BackColor = Color.Transparent;
                 updateLockdown();
                 pollNow = true;
-            }
+        processRunning = true;
+      }
             else
             {
                 controller.Manual = false;
@@ -233,7 +266,7 @@ namespace HighShearMixController
         }
 
         // Manual stop button
-        private void button2_Click(object sender, EventArgs e)
+        private void manStopButton_Click(object sender, EventArgs e)
         {
             if (controller.stopDrive())
             {
@@ -241,11 +274,12 @@ namespace HighShearMixController
                 controller.Automatic = false;
                 groupBox1.BackColor = Color.Transparent;
                 updateLockdown();
-            }
+        processRunning = false;
+      }
         }
 
         // Automatic start button
-        private void button3_Click(object sender, EventArgs e)
+        private void autStartButton_Click(object sender, EventArgs e)
         {
             controller.Automatic = true;
             if (controller.startDrive())
@@ -259,7 +293,8 @@ namespace HighShearMixController
                 groupBox1.BackColor = Color.Transparent;
                 updateLockdown();
                 recordingSession = true;
-                pollNow = true;                
+                pollNow = true;
+        processRunning = true;
             }
             else
             {
@@ -268,7 +303,7 @@ namespace HighShearMixController
         }
 
         // Automatic stop button
-        private void button4_Click(object sender, EventArgs e)
+        private void autStopButton_Click(object sender, EventArgs e)
         {
             if (controller.stopDrive())
             {
@@ -276,33 +311,34 @@ namespace HighShearMixController
                 controller.Manual = false;
                 groupBox2.BackColor = Color.Transparent;
                 updateLockdown();
-            }
+        processRunning = false;
+      }
         }
 
         // Save Session
         private void setFileName()
         {            
-            string fileName = "P:\\Turner MedTech\\ClearShield\\Work Order Data\\" + textBox3.Text + " batch " + textBox4.Text + " mix.csv";
+            string fileName = "P:\\Turner MedTech\\ClearShield\\Work Order Data\\" + workOrderTextBox.Text + " batch " + batchTextBox.Text + " mix.csv";
             controller.setFileName(fileName);
         }
 
         // Manual Speed - User input
-        private void textBox1_TextChanged(object sender, EventArgs e)
+        private void mixSpeedTextBox_TextChanged(object sender, EventArgs e)
         {
             try
             {
-                if (textBox1.Text != "")
+                if (mixSpeedTextBox.Text != "")
                 {
-                    if (Convert.ToDouble(textBox1.Text) >= Properties.Settings.Default.MinimumAutoSpeed
-                        && Convert.ToDouble(textBox1.Text) <= Properties.Settings.Default.MaxSpeed)
+                    if (Convert.ToDouble(mixSpeedTextBox.Text) >= Properties.Settings.Default.MinimumAutoSpeed
+                        && Convert.ToDouble(mixSpeedTextBox.Text) <= Properties.Settings.Default.MaxSpeed)
                     {
                         label12.ForeColor = Color.Black;
-                        if (Properties.Settings.Default.ManualSpeed != Convert.ToDouble(textBox1.Text))
+                        if (Properties.Settings.Default.ManualSpeed != Convert.ToDouble(mixSpeedTextBox.Text))
                         {
                             controller.ManualSpeedChanged = true;
                             pollNow = true;
                         }
-                        Properties.Settings.Default.ManualSpeed = (float)Convert.ToDouble(textBox1.Text);
+                        Properties.Settings.Default.ManualSpeed = (float)Convert.ToDouble(mixSpeedTextBox.Text);
                     }
                     else
                     {
@@ -312,60 +348,60 @@ namespace HighShearMixController
             }
             catch
             {
-                textBox1.Text = ("" + Properties.Settings.Default.ManualSpeed);
+                mixSpeedTextBox.Text = ("" + Properties.Settings.Default.ManualSpeed);
             }
             Update();
-            moveCursorToEndOfText(textBox1);
+            moveCursorToEndOfText(mixSpeedTextBox);
             Properties.Settings.Default.Save();
         }
 
         // Target temperature - User input ***Unless Controlled***
-        private void textBox2_TextChanged(object sender, EventArgs e)
+        private void tempTextBox_TextChanged(object sender, EventArgs e)
         {
             try
             {
-                if (textBox2.Text != "")
+                if (tempTextBox.Text != "")
                 {
-                    if (Convert.ToDouble(textBox2.Text) <= Properties.Settings.Default.MaxTargetTemp)
+                    if (Convert.ToDouble(tempTextBox.Text) <= Properties.Settings.Default.MaxTargetTemp)
                     {
-                        if (Properties.Settings.Default.TargetTemperature != Convert.ToDouble(textBox2.Text))
+                        if (Properties.Settings.Default.TargetTemperature != Convert.ToDouble(tempTextBox.Text))
                         {
                             controller.TargetTempChanged = true;
                             pollNow = true;
                         }
-                        Properties.Settings.Default.TargetTemperature = (float)Convert.ToDouble(textBox2.Text);
+                        Properties.Settings.Default.TargetTemperature = (float)Convert.ToDouble(tempTextBox.Text);
                     }
                     else
                     {
-                        textBox2.Text = ("" + Properties.Settings.Default.TargetTemperature);
+                        tempTextBox.Text = ("" + Properties.Settings.Default.TargetTemperature);
                     }
                 }
             }
             catch
             {
-                textBox2.Text = ("" + Properties.Settings.Default.TargetTemperature);
+                tempTextBox.Text = ("" + Properties.Settings.Default.TargetTemperature);
             }
             Update();
-            moveCursorToEndOfText(textBox2);
+            moveCursorToEndOfText(tempTextBox);
             Properties.Settings.Default.Save();
         }
 
         // Work Order # - User input
-        private void textBox3_TextChanged(object sender, EventArgs e)
+        private void workOrderTextBox_TextChanged(object sender, EventArgs e)
         {
             try
             {
-                if (textBox3.Text != "")
+                if (workOrderTextBox.Text != "")
                 {
-                    textBox3.ForeColor = Color.Black;
-                    if(textBox4.Text != "")
+                    workOrderTextBox.ForeColor = Color.Black;
+                    if(batchTextBox.Text != "")
                     {
                         workOrderLock = false;
                     }
                 }
                 else
                 {
-                    textBox3.ForeColor = Color.Red;
+                    workOrderTextBox.ForeColor = Color.Red;
                 }
             }
             catch
@@ -377,21 +413,21 @@ namespace HighShearMixController
         }
 
         // Batch # - User input
-        private void textBox4_TextChanged(object sender, EventArgs e)
+        private void batchTextBox_TextChanged(object sender, EventArgs e)
         {
             try
             {
-                if (textBox4.Text != "")
+                if (batchTextBox.Text != "")
                 {
-                    textBox4.ForeColor = Color.Black;
-                    if (textBox3.Text != "")
+                    batchTextBox.ForeColor = Color.Black;
+                    if (workOrderTextBox.Text != "")
                     {
                         workOrderLock = false;
                     }
                 }
                 else
                 {
-                    textBox4.ForeColor = Color.Red;
+                    batchTextBox.ForeColor = Color.Red;
                 }
             }
             catch
@@ -435,6 +471,7 @@ namespace HighShearMixController
                 {                    
                     controller.setSpeed();
                 }
+        controller.checkAlarmConn();
                 controller.checkDriveConn();
                 controller.checkThermConn();
 
@@ -443,7 +480,8 @@ namespace HighShearMixController
                     controller.pollData();
                 }
 
-                label14.Text = controller.debugMessage; //****** Debugging *****
+        //label14.Text = controller.debugMessage; //****** Debugging *****
+        label14.Text = "Loop counter: " + pollCounter;
                 controller.getCurrentSpeed();
                 updateStatus();
             }
@@ -469,16 +507,17 @@ namespace HighShearMixController
         /*
          * Poller for Debugging only.
          */
-        private void button5_Click(object sender, EventArgs e)
+        private void pollButton_Click(object sender, EventArgs e)
         {
             controller.checkDriveConn();
             controller.checkThermConn();
+      controller.checkAlarmConn();
             controller.setSpeed();
 
-            if (!(Convert.ToDouble(textBox1.Text) >= Properties.Settings.Default.MinimumAutoSpeed
-                && Convert.ToDouble(textBox1.Text) < Properties.Settings.Default.MaxSpeed))
+            if (!(Convert.ToDouble(mixSpeedTextBox.Text) >= Properties.Settings.Default.MinimumAutoSpeed
+                && Convert.ToDouble(mixSpeedTextBox.Text) < Properties.Settings.Default.MaxSpeed))
             {
-                textBox1.Text = ("" + Properties.Settings.Default.ManualSpeed);
+                mixSpeedTextBox.Text = ("" + Properties.Settings.Default.ManualSpeed);
                 label12.ForeColor = Color.Red;
             }
             else
