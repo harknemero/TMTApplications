@@ -1,15 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.IO.Ports;
-using System.Diagnostics;
-using System.Windows.Forms;
 using System.Collections;
 
 namespace HighShearMixController
 {
-    class VFDriveControl
+  class VFDriveControl
     {
         private SerialPort drive;
         //private DriveExtension driveExtend;

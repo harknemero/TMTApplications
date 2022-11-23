@@ -1,19 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 
 
 namespace HighShearMixController
 {
-    public partial class Form1 : Form
+  public partial class Form1 : Form
     {
         private Controller controller;
         private int temperatureAlarm;
@@ -22,7 +16,7 @@ namespace HighShearMixController
         private bool continuePolling;
         private bool pollNow;
         private bool recordingSession;
-    private bool processRunning = false;
+        private bool processRunning = false;
 
         public Form1(Controller c)
         {
@@ -39,7 +33,7 @@ namespace HighShearMixController
             tempTextBox.Text = Properties.Settings.Default.TargetTemperature + "";
             label12.Text = Properties.Settings.Default.MinimumAutoSpeed + "Hz - 60.0Hz";
 
-      controller.checkAlarmConn();
+            controller.checkAlarmConn();
             updateStatus();
 
             runPoller(); // ******** renders debugger unusable - toggle with button5 for testing.
@@ -101,15 +95,15 @@ namespace HighShearMixController
             }
 
             if (controller.AlarmConn)
-      {
-        alarmStatusLabel.Text = "Alarm Connected";
-        alarmStatusLabel.ForeColor = Color.DarkGreen;
-      }
-      else
-      {
-        alarmStatusLabel.Text = "Alarm Disconnected";
-        alarmStatusLabel.ForeColor = Color.Red;
-      }
+            {
+                alarmStatusLabel.Text = "Alarm Connected";
+                alarmStatusLabel.ForeColor = Color.DarkGreen;
+            }
+            else
+            {
+                alarmStatusLabel.Text = "Alarm Disconnected";
+                alarmStatusLabel.ForeColor = Color.Red;
+            }
 
             if (controller.getDriveWarning() != "")
             {
@@ -118,25 +112,25 @@ namespace HighShearMixController
             controller.setAlarmLevel(decideOverallAlarmLevel());
             updateLockdown();
             decideOverallAlarmLevel();
-      updateAlarm();
+            updateAlarm();
         }
 
-    private void updateAlarm()
-    {
-      if (!processRunning)
-      {
-        controller.alarmStandBy();
-      }
-      else if (!controller.ThermConn || !controller.DriveConn || 
-        controller.CurrentTemp > Properties.Settings.Default.TargetTemperature + Properties.Settings.Default.HazardRange)
-      {
-        controller.alarmActivate();
-      }
-      else
-      {
-        controller.alarmArm();
-      }
-    }
+        private void updateAlarm()
+        {
+            if (!processRunning)
+            {
+                controller.alarmStandBy();
+            }
+            else if (!controller.ThermConn || !controller.DriveConn || 
+                controller.CurrentTemp > Properties.Settings.Default.TargetTemperature + Properties.Settings.Default.HazardRange)
+            {
+                controller.alarmActivate();
+            }
+            else
+            {
+                controller.alarmArm();
+            }
+        }
 
         // If either the drive or thermometer are not connected, disable all start buttons.
         // If drive is disconnected, disable all buttons.
@@ -257,8 +251,8 @@ namespace HighShearMixController
                 groupBox2.BackColor = Color.Transparent;
                 updateLockdown();
                 pollNow = true;
-        processRunning = true;
-      }
+                processRunning = true;
+            }
             else
             {
                 controller.Manual = false;
@@ -274,8 +268,8 @@ namespace HighShearMixController
                 controller.Automatic = false;
                 groupBox1.BackColor = Color.Transparent;
                 updateLockdown();
-        processRunning = false;
-      }
+                processRunning = false;
+            }
         }
 
         // Automatic start button
@@ -294,7 +288,7 @@ namespace HighShearMixController
                 updateLockdown();
                 recordingSession = true;
                 pollNow = true;
-        processRunning = true;
+                processRunning = true;
             }
             else
             {
@@ -311,8 +305,8 @@ namespace HighShearMixController
                 controller.Manual = false;
                 groupBox2.BackColor = Color.Transparent;
                 updateLockdown();
-        processRunning = false;
-      }
+                processRunning = false;
+            }
         }
 
         // Save Session
@@ -471,7 +465,7 @@ namespace HighShearMixController
                 {                    
                     controller.setSpeed();
                 }
-        controller.checkAlarmConn();
+                controller.checkAlarmConn();
                 controller.checkDriveConn();
                 controller.checkThermConn();
 
@@ -511,7 +505,7 @@ namespace HighShearMixController
         {
             controller.checkDriveConn();
             controller.checkThermConn();
-      controller.checkAlarmConn();
+            controller.checkAlarmConn();
             controller.setSpeed();
 
             if (!(Convert.ToDouble(mixSpeedTextBox.Text) >= Properties.Settings.Default.MinimumAutoSpeed

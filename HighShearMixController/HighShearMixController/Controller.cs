@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace HighShearMixController
 {
@@ -19,14 +18,12 @@ namespace HighShearMixController
         private float startingTemp;
         private bool manual;
         private bool automatic;
-    private bool alarmConn;
         private bool thermConn;
         private bool driveConn;
         private bool targetTempChanged;     // Flag for speed setting and datapolling
         private bool manualSpeedChanged;    // Flag for speed setting.
         private bool commandSpeedChanged;   // Flag for data polling purposes.
         private System.Diagnostics.Stopwatch timer;
-        private List<DataPoint> data;
         private List<DataPoint> sampleData;
         private string fileName;
         public string debugMessage = "";    // For testing/debugging only.
@@ -36,7 +33,7 @@ namespace HighShearMixController
 
         public bool Manual { get => manual; set => manual = value; }
         public bool Automatic { get => automatic; set => automatic = value; }
-    public bool AlarmConn { get => alarm.isConnected(); }
+        public bool AlarmConn { get => alarm.isConnected(); }
         public bool ThermConn { get => thermConn; set => thermConn = value; }
         public bool DriveConn { get => driveConn; set => driveConn = value; }
         public static int MaxAlarmLevel { get => maxAlarmLevel;}
@@ -51,7 +48,6 @@ namespace HighShearMixController
             therm = new ThermometerControl();
             drive = new VFDriveControl();
             alarm = new AlarmControl();
-            data = new List<DataPoint>();
             sampleData = new List<DataPoint>();
             timer = new System.Diagnostics.Stopwatch();
             alarmLevel = 0;
@@ -117,13 +113,13 @@ namespace HighShearMixController
         // Gets connection status if any controllers are disconnected
         public string getMessage()
         {
-      string message = "";
-      if (!therm.isConnected()) message += "Thermometer ";
-      if (!drive.isConnected()) message += "VF Drive ";
-      if (!alarm.isConnected()) message += "Alarm ";
-      if (message != "") message += "is disconnected";
+            string message = "";
+            if (!therm.isConnected()) message += "Thermometer ";
+            if (!drive.isConnected()) message += "VF Drive ";
+            if (!alarm.isConnected()) message += "Alarm ";
+            if (message != "") message += "is disconnected";
 
-      return message;
+            return message;
         }
 
         /*
@@ -259,7 +255,7 @@ namespace HighShearMixController
 
         public void getCurrentSpeed()
         {
-      if (!drive.isConnected()) return;
+            if (!drive.isConnected()) return;
             currentSpeed = drive.getSpeed();
         }
 
@@ -287,16 +283,16 @@ namespace HighShearMixController
             return drive.Warning;
         }
 
-    public bool checkAlarmConn()
-    {
-      if (!alarm.isConnected())
-      {
-        alarm.openAlarm();
-      }
-      bool result = alarm.isConnected();
+        public bool checkAlarmConn()
+        {
+            if (!alarm.isConnected())
+            {
+              alarm.openAlarm();
+            }
+            bool result = alarm.isConnected();
 
-      return result;
-    }
+            return result;
+        }
 
         public bool checkThermConn()
         {
@@ -325,20 +321,20 @@ namespace HighShearMixController
             drive.restore();
         }
 
-    public void alarmStandBy()
-    {
-      alarm.standBy();
-    }
+        public void alarmStandBy()
+        {
+            alarm.standBy();
+        }
 
-    public void alarmArm()
-    {
-      alarm.arm();
-    }
+        public void alarmArm()
+        {
+            alarm.arm();
+        }
 
-    public void alarmActivate()
-    {
-      alarm.activate();
-    }
+        public void alarmActivate()
+        {
+            alarm.activate();
+        }
 
         private string sessionToString()
         {

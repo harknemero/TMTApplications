@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Data;
-using MccDaq;
+﻿using MccDaq;
 
 namespace HighShearMixController
 {
-    class ThermometerControl
+  class ThermometerControl
     {
         private MccBoard therm;
         private TempScale tempScale;
