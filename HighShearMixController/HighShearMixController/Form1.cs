@@ -36,7 +36,7 @@ namespace HighShearMixController
             controller.checkAlarmConn();
             updateStatus();
 
-            runPoller(); // ******** renders debugger unusable - toggle with button5 for testing.
+            runPoller(); // ******** renders debugger unusable - toggle with pollButton for testing.
             //pollButton.Enabled = true; pollButton.Visible = true; // ************************************ for testing
         }
 
@@ -474,8 +474,8 @@ namespace HighShearMixController
                     controller.pollData();
                 }
 
-        //label14.Text = controller.debugMessage; //****** Debugging *****
-        label14.Text = "Loop counter: " + pollCounter;
+                //label14.Text = controller.debugMessage; //****** Debugging *****
+                //label14.Text = "Loop counter: " + pollCounter;
                 controller.getCurrentSpeed();
                 updateStatus();
             }

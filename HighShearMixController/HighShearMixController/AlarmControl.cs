@@ -11,6 +11,7 @@ namespace HighShearMixController
         private bool connected = false;
         private string rsDataBuffer;
 
+        private const char CONNECT = 'W';
         private const char STAND_BY = 'X';
         private const char ARM = 'Y';
         private const char ACTIVATE = 'Z';
@@ -45,7 +46,7 @@ namespace HighShearMixController
                     if (!alarm.IsOpen)
                     {
                         alarm.Open();
-                        result = standBy();
+                        result = connect();
                         //alarm.Write(STAND_BY.ToString());
                         //rsDataBuffer = alarm.ReadExisting();
                         if (result) break;
@@ -69,7 +70,11 @@ namespace HighShearMixController
         // Sends command to Alarm.
         private bool sendCommand(string command)
         {
-            if (alarm == null) return false;
+            if (alarm == null)
+            {
+                connected = false;
+                return false;
+            }
 
             int timeOut = 0;
             while (portBusy)
@@ -131,7 +136,7 @@ namespace HighShearMixController
             StringBuilder sb = new StringBuilder();
             sb.Append("");
 
-            if(response == null || response.Length < 1 || response != command + 32) // the alarm converts the uppercase command to a lowercase response 
+            if(response == null || response.Length < 1 || response != command.ToLower()) // the alarm converts the uppercase command to a lowercase response 
             {
                 result = false;
             }
@@ -157,6 +162,12 @@ namespace HighShearMixController
             alarm.Dispose();
             System.Threading.Thread.Sleep(150);
             alarm = null;
+        }
+
+        public bool connect()
+        {
+            sendCommand(CONNECT.ToString());
+            return checkResponse(CONNECT.ToString(), rsDataBuffer);
         }
 
         public bool standBy()
